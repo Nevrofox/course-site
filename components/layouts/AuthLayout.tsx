@@ -20,7 +20,7 @@ export default function AuthLayout({
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-20 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <Image
-            src={app.logoUrl}
+            src="/logo.png"
             className="mx-auto h-12"
             alt={app.name}
             width={48}

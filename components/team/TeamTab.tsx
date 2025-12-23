@@ -12,6 +12,8 @@ import classNames from 'classnames';
 import useCanAccess from 'hooks/useCanAccess';
 import Link from 'next/link';
 import { TeamFeature } from 'types';
+import { useTranslation } from 'next-i18next';
+
 
 interface TeamTabProps {
   activeTab: string;
@@ -23,9 +25,12 @@ interface TeamTabProps {
 const TeamTab = ({ activeTab, team, heading, teamFeatures }: TeamTabProps) => {
   const { canAccess } = useCanAccess();
 
+  const { t } = useTranslation('common');
+
+
   const navigations = [
     {
-      name: 'Settings',
+      name: t('settings'),
       href: `/teams/${team.slug}/settings`,
       active: activeTab === 'settings',
       icon: Cog6ToothIcon,
@@ -34,46 +39,10 @@ const TeamTab = ({ activeTab, team, heading, teamFeatures }: TeamTabProps) => {
 
   if (canAccess('team_member', ['create', 'update', 'read', 'delete'])) {
     navigations.push({
-      name: 'Members',
+      name: t('members'),
       href: `/teams/${team.slug}/members`,
       active: activeTab === 'members',
       icon: UserPlusIcon,
-    });
-  }
-
-  if (
-    teamFeatures.sso &&
-    canAccess('team_sso', ['create', 'update', 'read', 'delete'])
-  ) {
-    navigations.push({
-      name: 'Single Sign-On',
-      href: `/teams/${team.slug}/sso`,
-      active: activeTab === 'sso',
-      icon: ShieldExclamationIcon,
-    });
-  }
-
-  if (
-    teamFeatures.dsync &&
-    canAccess('team_dsync', ['create', 'update', 'read', 'delete'])
-  ) {
-    navigations.push({
-      name: 'Directory Sync',
-      href: `/teams/${team.slug}/directory-sync`,
-      active: activeTab === 'directory-sync',
-      icon: UserPlusIcon,
-    });
-  }
-
-  if (
-    teamFeatures.auditLog &&
-    canAccess('team_audit_log', ['create', 'update', 'read', 'delete'])
-  ) {
-    navigations.push({
-      name: 'Audit Logs',
-      href: `/teams/${team.slug}/audit-logs`,
-      active: activeTab === 'audit-logs',
-      icon: DocumentMagnifyingGlassIcon,
     });
   }
 
@@ -82,7 +51,7 @@ const TeamTab = ({ activeTab, team, heading, teamFeatures }: TeamTabProps) => {
     canAccess('team_payments', ['create', 'update', 'read', 'delete'])
   ) {
     navigations.push({
-      name: 'Billing',
+      name: t('billing'),
       href: `/teams/${team.slug}/billing`,
       active: activeTab === 'payments',
       icon: BanknotesIcon,

@@ -14,24 +14,44 @@ import env from '@/lib/env';
 import { Theme, applyTheme } from '@/lib/theme';
 import { Themer } from '@boxyhq/react-ui/shared';
 import { AccountLayout } from '@/components/layouts';
+import { useRouter } from 'next/router';
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
+  const router = useRouter();
   const { session, ...props } = pageProps;
 
-  // Add mixpanel
   useEffect(() => {
+    console.log("ENV TOKEN:", env.mixpanel.token);
+    console.log("RAW ENV:", process.env.NEXT_PUBLIC_MIXPANEL_TOKEN);
+    // Initialize Mixpanel once
     if (env.mixpanel.token) {
       mixpanel.init(env.mixpanel.token, {
-        debug: true,
-        ignore_dnt: true,
-        track_pageview: true,
-      });
+      debug: true,
+      ignore_dnt: true,
+      track_pageview: true,
+      api_host: "https://api-eu.mixpanel.com",
+    });
+
+      mixpanel.track("app_loaded");
     }
 
-    if (env.darkModeEnabled) {
-      applyTheme(localStorage.getItem('theme') as Theme);
-    }
+    // Track route changes
+    const handleRouteChange = (url: string) => {
+      if (env.mixpanel.token) {
+        mixpanel.track("page_view", { path: url });
+      }
+    };
+
+    router.events.on("routeChangeComplete", handleRouteChange);
+
+    return () => {
+      router.events.off("routeChangeComplete", handleRouteChange);
+    };
   }, []);
+
+  if (env.darkModeEnabled) {
+    applyTheme(localStorage.getItem('theme') as Theme);
+  }
 
   const getLayout =
     Component.getLayout || ((page) => <AccountLayout>{page}</AccountLayout>);
@@ -40,8 +60,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
     <>
       <Head>
         <title>{app.name}</title>
-        <link rel="icon" href="https://boxyhq.com/img/favicon.ico" />
+        <link rel="icon" type="image/png" href="/logo.png" />
       </Head>
+
       <SessionProvider session={session}>
         <Toaster toastOptions={{ duration: 4000 }} />
         <Themer
