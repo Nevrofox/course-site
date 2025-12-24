@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { startCourseGeneration, CourseWizardInput } from '@/lib/course';
@@ -7,7 +9,7 @@ const questions = [
     key: 'industry',
     question: 'Hva slags virksomhet er dette?',
     type: 'options',
-    options: ['Transport', 'Retail', 'IT', 'Annet'],
+    options: ['Logistics', 'Retail', 'IT', 'Annet'],
   },
   {
     key: 'size',
@@ -15,22 +17,36 @@ const questions = [
     type: 'input',
   },
   {
+    key: 'location',
+    question: 'Hvor holder selskapet til?',
+    type: 'input',
+  },
+  {
     key: 'systems_used',
     question: 'Hvilke systemer jobber de i til daglig?',
     type: 'multi',
-    options: ['Teams', 'Excel', 'SharePoint', 'ERP', 'Annet'],
+    options: ['Teams', 'Excel', 'SharePoint', 'Visma', 'Annet'],
   },
   {
     key: 'business_goals',
     question: 'Hva ønsker dere å oppnå med AI?',
     type: 'multi',
-    options: ['Effektivitet', 'Kvalitet', 'Mindre manuelt arbeid', 'Innovasjon'],
+    options: [
+      'Automatisere manuelt arbeid',
+      'Redusere tid brukt på dokumenthåndtering',
+      'Oppnå grunnleggende AI-kompetanse',
+    ],
   },
   {
     key: 'ai_maturity',
     question: 'Hvor komfortable er de ansatte med teknologi i dag?',
     type: 'scale',
-    options: ['Nybegynnere', 'Litt øvet', 'Middels', 'Avansert'],
+    options: [
+      { label: 'Nybegynnere', value: 'low' },
+      { label: 'Litt øvet', value: 'medium' },
+      { label: 'Middels', value: 'medium' },
+      { label: 'Avansert', value: 'high' },
+    ],
   },
 ];
 
@@ -60,10 +76,11 @@ export default function CompanyWizard() {
 
     const payload: CourseWizardInput = {
       company: {
-        name: 'Demo Company',
-        location: 'Norge',
+        companyId: slug,
+        name: 'Nordic Freight AS',
+        location: answers.location,
         industry: answers.industry,
-        size: answers.size,
+        size: `${answers.size} ansatte`,
       },
       systems_used: answers.systems_used,
       business_goals: answers.business_goals,
@@ -75,12 +92,14 @@ export default function CompanyWizard() {
       },
     };
 
-    console.log('Sender til API:', payload);
-
     try {
       await startCourseGeneration(slug, payload);
       setGenerated(true);
-      router.push(`/teams/${slug}/courses`);
+
+      router.push({
+        pathname: `/teams/${slug}/courses`,
+        query: { generating: '1' },
+      });
     } catch (err: any) {
       console.error('Feil ved generering:', err);
       setError(err.message ?? 'Noe gikk galt');
@@ -133,11 +152,11 @@ export default function CompanyWizard() {
           <div className="space-y-2">
             {current.options.map((opt) => (
               <button
-                key={opt}
-                onClick={() => handleNext(opt.toLowerCase())}
+                key={opt.label}
+                onClick={() => handleNext(opt.value)}
                 className="w-full bg-white border rounded px-4 py-2 hover:bg-gray-100"
               >
-                {opt}
+                {opt.label}
               </button>
             ))}
           </div>
@@ -176,7 +195,13 @@ export default function CompanyWizard() {
   );
 }
 
-function MultiSelect({ options, onSubmit }: { options: string[]; onSubmit: (vals: string[]) => void }) {
+function MultiSelect({
+  options,
+  onSubmit,
+}: {
+  options: string[];
+  onSubmit: (vals: string[]) => void;
+}) {
   const [selected, setSelected] = useState<string[]>([]);
 
   const toggle = (val: string) => {

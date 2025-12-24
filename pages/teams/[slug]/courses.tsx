@@ -1,5 +1,3 @@
-// pages/teams/[slug]/courses.tsx
-
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { GetServerSidePropsContext } from 'next';
@@ -13,7 +11,9 @@ import { useCoursePolling } from '../../../hooks/useCoursePolling';
 const Courses: NextPageWithLayout = () => {
   const router = useRouter();
 
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(
+    router.query.generating === '1'
+  );
   const [courses, setCourses] = useState<any[] | null>(null);
 
   if (!router.isReady) {
@@ -62,8 +62,6 @@ const Courses: NextPageWithLayout = () => {
               title: course.title,
               description: course.description,
               modules: course.modules,
-
-              // 🔥 KRITISK – må med for module polling
               companyId: course.companyId,
               id: course.id,
             }}
