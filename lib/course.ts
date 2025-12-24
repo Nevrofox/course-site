@@ -2,11 +2,27 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-/**
- * ⚠️ MIDLERIDIG TEST-IMPLEMENTASJON
- * Hardkodede verdier som matcher det n8n-flowen forventer
- */
-export async function startCourseGeneration(companyId: string) {
+export interface CourseWizardInput {
+  company: {
+    name: string;
+    industry: string;
+    size: string;
+    location: string;
+  };
+  ai_maturity: string;
+  business_goals: string[];
+  systems_used: string[];
+  course_preferences: {
+    type: string;
+    level: string;
+    duration_per_week: string;
+  };
+}
+
+export async function startCourseGeneration(
+  companyId: string,
+  input: CourseWizardInput
+) {
   if (!API_BASE_URL) {
     throw new Error('NEXT_PUBLIC_API_BASE_URL is not set');
   }
@@ -14,23 +30,12 @@ export async function startCourseGeneration(companyId: string) {
   const payload = {
     company: {
       companyId,
-      name: 'Nordic Freight AS',
-      industry: 'Logistics',
-      size: '120 ansatte',
-      location: 'Trondheim',
+      ...input.company,
     },
-    ai_maturity: 'low',
-    business_goals: [
-      'Automatisere manuelt arbeid',
-      'Redusere tid brukt på dokumenthåndtering',
-      'Oppnå grunnleggende AI-kompetanse',
-    ],
-    systems_used: ['SharePoint', 'Excel', 'Visma', 'Teams'],
-    course_preferences: {
-      type: 'mixed',
-      level: 'beginner',
-      duration_per_week: '1-2 hours',
-    },
+    ai_maturity: input.ai_maturity,
+    business_goals: input.business_goals,
+    systems_used: input.systems_used,
+    course_preferences: input.course_preferences,
   };
 
   const res = await fetch(
@@ -74,4 +79,3 @@ export async function getMasterCourses(companyId: string) {
 
   return res.json();
 }
-
