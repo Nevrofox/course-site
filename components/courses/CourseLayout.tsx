@@ -67,12 +67,12 @@ export default function CourseLayout({ course }: any) {
   }
 
   return (
-    <div className="flex rounded-lg border border-gray-200 bg-white">
+    <div className="flex w-full min-h-screen">
       <ModuleSidebar
         modules={modules}
         activeIndex={activeIndex}
         isCollapsed={isCollapsed}
-        onToggle={() => setIsCollapsed(v => !v)}
+        onToggle={() => setIsCollapsed((v) => !v)}
         onSelect={setActiveIndex}
         moduleStatuses={moduleStatuses}
       />

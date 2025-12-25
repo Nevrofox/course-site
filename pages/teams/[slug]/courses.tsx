@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import type { NextPageWithLayout } from 'types';
@@ -15,16 +15,10 @@ const Courses: NextPageWithLayout = () => {
     router.query.generating === '1'
   );
   const [courses, setCourses] = useState<any[] | null>(null);
-
-  if (!router.isReady) {
-    return (
-      <div className="p-6 text-sm text-gray-500">
-        Laster kurs…
-      </div>
-    );
-  }
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const companyId = router.query.slug as string;
+  const course = courses?.[0]; // midlertidig: viser første kurs
 
   useCoursePolling({
     companyId,
@@ -32,42 +26,48 @@ const Courses: NextPageWithLayout = () => {
     onFound: (foundCourses) => {
       setCourses(foundCourses);
       setIsGenerating(false);
+      setHasLoaded(true);
     },
   });
 
-  const course = courses?.[0]; // midlertidig: viser første kurs
+  useEffect(() => {
+    if (!isGenerating && courses === null) {
+      setHasLoaded(true);
+    }
+  }, [isGenerating, courses]);
+
+  if (!router.isReady || !hasLoaded) {
+    return (
+      <div className="p-6 text-sm text-gray-500">
+        Laster kurs…
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold text-gray-900">
-        Nevrofox AI-kurs
-      </h1>
+    <div className={course ? 'p-0' : 'p-6'}>
+      {!course && (
+        <CourseEmptyState
+          companyId={companyId}
+          isGenerating={isGenerating}
+          onStarted={() => {
+            setIsGenerating(true);
+            setHasLoaded(false);
+          }}
+        />
+      )}
 
-      <p className="mt-1 text-sm text-gray-600">
-        Her genererer og følger du skreddersydde AI-kurs for ditt selskap.
-      </p>
-
-      <div className="mt-6">
-        {!course && (
-          <CourseEmptyState
-            companyId={companyId}
-            isGenerating={isGenerating}
-            onStarted={() => setIsGenerating(true)}
-          />
-        )}
-
-        {course && (
-          <CourseLayout
-            course={{
-              title: course.title,
-              description: course.description,
-              modules: course.modules,
-              companyId: course.companyId,
-              id: course.id,
-            }}
-          />
-        )}
-      </div>
+      {course && (
+        <CourseLayout
+          course={{
+            title: course.title,
+            description: course.description,
+            modules: course.modules,
+            companyId: course.companyId,
+            id: course.id,
+          }}
+        />
+      )}
     </div>
   );
 };
