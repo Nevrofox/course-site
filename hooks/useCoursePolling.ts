@@ -1,53 +1,51 @@
-import { useEffect, useRef } from 'react';
-import { getMasterCourses } from '@/lib/course';
-
-interface Options {
-  companyId: string;
-  enabled: boolean;
-  intervalMs?: number;
-  onFound: (courses: any[]) => void;
-  onError?: (err: unknown) => void;
-}
+import { useEffect } from "react";
+import { getCourse } from "@/lib/course";
 
 export function useCoursePolling({
-  companyId,
+  courseId,
+  userId,
   enabled,
-  intervalMs = 3000,
-  onFound,
-  onError,
-}: Options) {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
+  onReady,
+}: {
+  courseId: string | null;
+  userId: string;
+  enabled: boolean;
+  onReady: (course: any) => void;
+}) {
   useEffect(() => {
-    if (!enabled || !companyId) return;
+    if (!enabled || !courseId) return;
+
+    let timer: NodeJS.Timeout;
+    let hasTriggered = false;
 
     const poll = async () => {
       try {
-        const courses = await getMasterCourses(companyId);
+        console.log("Polling course:", courseId);
 
-        if (Array.isArray(courses) && courses.length > 0) {
-          onFound(courses);
-          stop();
+        const course = await getCourse(userId, courseId);
+
+        const hasOutlines =
+          Array.isArray(course.moduleOutlines) &&
+          course.moduleOutlines.length > 0;
+
+        // 🔥 DETTE ER DEN VIKTIGE ENDRINGEN:
+        // Så fort vi har outlines -> vis kurs
+        if (hasOutlines && !hasTriggered) {
+          hasTriggered = true;
+          onReady(course);
         }
+
+        // Vi fortsetter å polle selv om vi har trigget,
+        // fordi mer data kan komme senere (sections osv.)
+
       } catch (err) {
-        console.error('Polling error', err);
-        onError?.(err);
+        console.error("Polling error:", err);
       }
     };
 
-    const start = () => {
-      poll(); // kjør umiddelbart
-      timerRef.current = setInterval(poll, intervalMs);
-    };
+    poll();
+    timer = setInterval(poll, 4000);
 
-    const stop = () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-
-    start();
-    return stop;
-  }, [companyId, enabled]);
+    return () => clearInterval(timer);
+  }, [courseId, userId, enabled, onReady]);
 }

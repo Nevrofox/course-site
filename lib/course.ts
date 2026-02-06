@@ -2,48 +2,68 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export interface CourseWizardInput {
-  company: {
-    name: string;
-    industry: string;
-    size: string;
-    location: string;
-  };
-  ai_maturity: string;
-  business_goals: string[];
-  systems_used: string[];
-  course_preferences: {
-    type: string;
-    level: string;
-    duration_per_week: string;
-  };
+export interface WizardAnswers {
+  role: string;
+  primaryTasks: string[];
+  ai_experience: string;
+  tech_comfort: string;
+  personalGoal: string;
+  learningPreference: string;
+  biggestTimeWasters: string[];
+  biggestFrustrations: string[];
 }
 
 export async function startCourseGeneration(
-  companyId: string,
-  input: CourseWizardInput
+  userId: string,
+  wizardAnswers: any
 ) {
   if (!API_BASE_URL) {
     throw new Error('NEXT_PUBLIC_API_BASE_URL is not set');
   }
 
-  const payload = {
-    company: {
-      companyId,
-      ...input.company,
-    },
-    ai_maturity: input.ai_maturity,
-    business_goals: input.business_goals,
-    systems_used: input.systems_used,
-    course_preferences: input.course_preferences,
-  };
-
   const res = await fetch(
-    `${API_BASE_URL}/course/generate/${companyId}`,
+    `${API_BASE_URL}/api/course/courses`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-user-id': userId,
+      },
+      body: JSON.stringify({
+        userId,
+        wizardAnswers,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to create course: ${text}`);
+  }
+
+  return res.json();
+}
+
+
+export async function createCourse(
+  userId: string,
+  input: WizardAnswers
+) {
+  if (!API_BASE_URL) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL is not set");
+  }
+
+  const payload = {
+    userId,
+    ...input,
+  };
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/course/courses`,   // 👈 RIKTIG ENDPOINT
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     }
@@ -51,30 +71,53 @@ export async function startCourseGeneration(
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Failed to start course generation: ${text}`);
+    throw new Error(`Failed to create course: ${text}`);
   }
 
-  return res.json();
+  return res.json() as Promise<{
+    courseId: string;
+  }>;
 }
 
-export async function getMasterCourses(companyId: string) {
-  if (!API_BASE_URL) {
-    throw new Error('NEXT_PUBLIC_API_BASE_URL is not set');
-  }
 
+
+
+export async function getCourse(userId: string, courseId: string) {
   const res = await fetch(
-    `${API_BASE_URL}/course/master/${companyId}`,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/course/courses/${courseId}`,
     {
-      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        "x-user-id": userId,
       },
     }
   );
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Failed to fetch courses: ${text}`);
+    throw new Error("Failed to fetch course");
+  }
+
+  return res.json();
+}
+
+
+
+export async function getModule(
+  userId: string,
+  courseId: string,
+  moduleNumber: number
+) {
+  const res = await fetch(
+    `${API_BASE_URL}/api/course/courses/${courseId}/modules/${moduleNumber}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": userId,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch module");
   }
 
   return res.json();

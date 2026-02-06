@@ -1,69 +1,63 @@
 // components/courses/CourseEmptyState.tsx
 
-import { useState } from 'react';
-import { AcademicCapIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import { Button } from 'react-daisyui';
-
-import { startCourseGeneration } from '@/lib/course';
+import { AcademicCapIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 
 interface Props {
-  companyId: string;
   isGenerating: boolean;
-  onStarted: () => void;
 }
 
-const CourseEmptyState = ({ companyId, isGenerating, onStarted }: Props) => {
-  const [error, setError] = useState<string | null>(null);
+const loadingMessages = [
+  "Analyserer svarene dine...",
+  "Bygger kursstruktur...",
+  "Tilpasser innhold til din rolle...",
+  "Setter sammen moduler...",
+  "Snart klart..."
+];
 
-  const onGenerate = async () => {
-    setError(null);
+const CourseEmptyState = ({ isGenerating }: Props) => {
+  const [messageIndex, setMessageIndex] = useState(0);
 
-    // 🔑 Viktigste linje: starter polling i parent med en gang
-    onStarted();
+  useEffect(() => {
+    if (!isGenerating) return;
 
-    try {
-      await startCourseGeneration(companyId);
-      // API returnerer 202, polling tar over.
-    } catch (err: any) {
-      console.error(err);
-      setError(err?.message ?? 'Kunne ikke starte kursgenerering');
-    }
-  };
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center">
-      <div className="mb-4 rounded-full bg-indigo-50 p-3">
+      
+      <div className="mb-4 rounded-full bg-indigo-50 p-3 animate-pulse">
         <AcademicCapIcon className="h-8 w-8 text-indigo-600" />
       </div>
 
       <h2 className="text-lg font-semibold text-gray-900">
-        Ingen kurs generert ennå
+        {isGenerating
+          ? 'Genererer ditt personlige kurs…'
+          : 'Ingen kurs tilgjengelig'}
       </h2>
 
-      <p className="mt-2 max-w-md text-sm text-gray-600">
-        Generer et skreddersydd AI-kurs basert på selskapet ditt, systemene dere
-        bruker og ønsket kompetansenivå.
-      </p>
-
-      <Button
-        className="mt-6 flex items-center gap-2"
-        onClick={onGenerate}
-        disabled={isGenerating}
-      >
-        <SparklesIcon className="h-5 w-5" />
-        {isGenerating ? 'Genererer kurs…' : 'Generer kurs'}
-      </Button>
-
       {isGenerating && (
-        <p className="mt-3 text-sm text-gray-500">
-          Venter på at kursskjellett skal dukke opp i databasen…
-        </p>
-      )}
+        <>
+          <p className="mt-2 max-w-md text-sm text-gray-600 transition-all duration-300">
+            {loadingMessages[messageIndex]}
+          </p>
 
-      {error && (
-        <p className="mt-4 text-sm text-red-600">
-          {error}
-        </p>
+          {/* Spinner */}
+          <div className="mt-6 flex items-center gap-2">
+            <div className="h-3 w-3 animate-bounce rounded-full bg-indigo-600 delay-0"></div>
+            <div className="h-3 w-3 animate-bounce rounded-full bg-indigo-500 delay-150"></div>
+            <div className="h-3 w-3 animate-bounce rounded-full bg-indigo-400 delay-300"></div>
+          </div>
+
+          <p className="mt-6 text-xs text-gray-500">
+            Dette tar vanligvis 10–30 sekunder
+          </p>
+        </>
       )}
     </div>
   );

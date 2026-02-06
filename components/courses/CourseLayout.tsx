@@ -1,104 +1,123 @@
-// components/courses/CourseLayout.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import ModuleSidebar from "./ModuleSidebar";
 import TopicList from "./TopicList";
 import TopicContent from "./TopicContent";
-import { useModuleStatus } from "../../hooks/useModuleStatus";
-import { useGeneratedModule } from "../../hooks/useGeneratedModule";
+import { getModule } from "@/lib/course";
 
-export default function CourseLayout({ course }: any) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [activeTopicNumber, setActiveTopicNumber] = useState<number | null>(null);
+export default function CourseLayout({ course, userId }: any) {
+  const [activeModule, setActiveModule] = useState<number>(1);
+  const [activeTopic, setActiveTopic] = useState<number | null>(null);
 
-  const modules = useMemo(() => {
-    if (Array.isArray(course.modules)) return course.modules;
+  const [moduleData, setModuleData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-    if (typeof course.modules === "string") {
-      let raw = course.modules.trim();
-      if (raw.startsWith("=")) raw = raw.slice(1);
+  const outlines = course.moduleOutlines || [];
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    async function poll() {
       try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
+        const data = await getModule(userId, course.courseId, activeModule);
+        setModuleData(data);
+        setLoading(false);
+      } catch (e) {
+        console.error("Error polling module:", e);
       }
     }
-    return [];
-  }, [course.modules]);
 
-  useEffect(() => {
-    if (modules.length > 0 && activeIndex === null) {
-      setActiveIndex(0);
-    }
-  }, [modules, activeIndex]);
+    poll();
+    timer = setInterval(poll, 3000);
 
-  useEffect(() => {
-    setActiveTopicNumber(null);
-  }, [activeIndex]);
+    return () => clearInterval(timer);
+  }, [activeModule, userId, course.courseId]);
 
-  const activeModule = activeIndex !== null ? modules[activeIndex] : null;
-  const activeModuleNumber = activeModule?.moduleNumber ?? null;
+  const handleBackToOverview = () => {
+    setActiveTopic(null);
+  };
 
-  const moduleStatus = useModuleStatus(
-    course.companyId ?? "",
-    course.id ?? "",
-    activeModuleNumber
+  // Finn skjelett for aktiv modul
+  const skeleton = outlines.find(
+    (m: any) => Number(m.moduleNumber) === activeModule
   );
 
-  const generatedModule = useGeneratedModule(
-    course.companyId ?? "",
-    course.id ?? "",
-    activeModuleNumber
-  );
+  // 🔥 MERGE skjelett + generert data
+  const mergedTopics = (skeleton?.sections || []).map((s: any, index: number) => {
+    const generated = moduleData?.sections?.find(
+      (gen: any) => gen.sectionNumber === index + 1
+    );
 
-  const avsnitt = generatedModule?.avsnitt ?? [];
-
-  const activeGeneratedTopic =
-    activeTopicNumber !== null
-      ? avsnitt.find(
-          (a: any) => Number(a?.nummer) === Number(activeTopicNumber)
-        ) ?? null
-      : null;
-
-  const moduleStatuses: Record<number, "loading" | "generated"> = {};
-  if (activeModuleNumber) {
-    moduleStatuses[activeModuleNumber] = moduleStatus;
-  }
+    return (
+      generated || {
+        ...s,
+        topicNumber: index + 1,
+      }
+    );
+  });
 
   return (
-    <div className="flex w-full min-h-screen">
+    <div className="flex">
       <ModuleSidebar
-        modules={modules}
-        activeIndex={activeIndex}
-        isCollapsed={isCollapsed}
-        onToggle={() => setIsCollapsed((v) => !v)}
-        onSelect={setActiveIndex}
-        moduleStatuses={moduleStatuses}
+        modules={outlines}
+        activeIndex={activeModule - 1}
+        onSelect={(i) => {
+          setActiveModule(i + 1);
+          setActiveTopic(null);
+        }}
+        moduleStatuses={course.moduleStatuses}
+        isCollapsed={false}
+        onToggle={() => {}}
       />
 
-      <div className="flex-1 p-6">
-        {activeModule && (
-          <>
-            <h2 className="text-xl font-semibold text-gray-900">
-              {activeModule.moduleTitle}
-            </h2>
+      <div className="p-6 flex-1">
+        {loading && <p>Laster modul...</p>}
 
-            {activeGeneratedTopic ? (
-              <TopicContent
-                topic={activeGeneratedTopic}
-                onBack={() => setActiveTopicNumber(null)}
-              />
-            ) : (
-              <TopicList
-                topics={activeModule.topics ?? []}
-                disabled={moduleStatus !== "generated"}
-                onSelectTopic={(topic) =>
-                  setActiveTopicNumber(topic.topicNumber ?? null)
-                }
-              />
+        {!loading && !activeTopic && (
+          <TopicList
+            topics={mergedTopics}
+            topicStatus={moduleData?.topicStatus || {}}
+            onSelectTopic={(t: any) => setActiveTopic(t.topicNumber)}
+          />
+        )}
+
+        {!loading && activeTopic && moduleData && (
+          <TopicContent
+            topic={
+              moduleData.sections.find(
+                (s: any) => s.topicNumber === activeTopic
+              )
+            }
+            onBack={handleBackToOverview}
+
+            hasNext={mergedTopics.some(
+              (t: any) => t.topicNumber === (activeTopic || 0) + 1
             )}
-          </>
+
+            onNext={() => {
+              const next = (activeTopic || 0) + 1;
+
+              const exists = mergedTopics.some(
+                (t: any) => t.topicNumber === next
+              );
+
+              if (exists) {
+                setActiveTopic(next);
+              } else {
+                setActiveTopic(null);
+              }
+            }}
+
+            // 👇 NYTT: støtte for forrige
+            hasPrev={(activeTopic || 0) > 1}
+
+            onPrev={() => {
+              const prev = (activeTopic || 0) - 1;
+
+              if (prev >= 1) {
+                setActiveTopic(prev);
+              }
+            }}
+          />
         )}
       </div>
     </div>

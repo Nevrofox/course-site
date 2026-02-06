@@ -1,30 +1,15 @@
-// components/courses/TopicList.tsx
-
 import TopicCard from "./TopicCard";
 
-type Topic = {
-  topicNumber?: number;
-  track?: string;
-  title?: string;
-  description?: string;
-  relevance?: string;
-  suggestedFormat?: string;
-};
-
 interface Props {
-  topics: Topic[];
-
-  // ✅ Callback når bruker klikker på et topic
-  onSelectTopic?: (topic: Topic, index: number) => void;
-
-  // ✅ Disable klikk (f.eks. mens modul genereres)
-  disabled?: boolean;
+  topics: any[];
+  topicStatus: Record<string, any>;
+  onSelectTopic?: (topic: any, index: number) => void;
 }
 
 export default function TopicList({
   topics,
+  topicStatus,
   onSelectTopic,
-  disabled = false,
 }: Props) {
   if (!Array.isArray(topics) || topics.length === 0) {
     return (
@@ -34,7 +19,6 @@ export default function TopicList({
     );
   }
 
-  // Sorter topics hvis de har topicNumber
   const sorted = [...topics].sort((a, b) => {
     const an = a.topicNumber ?? 9999;
     const bn = b.topicNumber ?? 9999;
@@ -43,19 +27,27 @@ export default function TopicList({
 
   return (
     <div className="space-y-3">
-      {sorted.map((t, idx) => (
-        <TopicCard
-          key={idx}
-          topic={t}
-          index={idx}
-          disabled={disabled}
-          onClick={
-            !disabled && onSelectTopic
-              ? () => onSelectTopic(t, idx)
-              : undefined
-          }
-        />
-      ))}
+      {sorted.map((t, idx) => {
+        const status = topicStatus[String(t.topicNumber)];
+
+        const isClickable =
+          status?.hasContent === true &&
+          status?.clickable === true;
+
+        return (
+          <TopicCard
+            key={idx}
+            topic={t}
+            index={idx}
+            disabled={!isClickable}
+            onClick={
+              isClickable && onSelectTopic
+                ? () => onSelectTopic(t, idx)
+                : undefined
+            }
+          />
+        );
+      })}
     </div>
   );
 }

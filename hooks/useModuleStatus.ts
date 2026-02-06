@@ -1,40 +1,34 @@
-import { useEffect, useState } from 'react';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+import { useEffect, useState } from "react";
+import { getModule } from "@/lib/course";
 
 export function useModuleStatus(
-  companyId: string,
-  courseId: string,
-  moduleNumber: number | null
+  courseId: string | null,
+  moduleNumber: number | null,
+  userId: string
 ) {
-  const [status, setStatus] = useState<'loading' | 'generated'>('loading');
+  const [status, setStatus] = useState<"loading" | "generated">("loading");
 
   useEffect(() => {
-    if (!companyId || !courseId || !moduleNumber) return;
+    if (!courseId || !moduleNumber) return;
 
     let timer: NodeJS.Timeout;
 
-    const check = async () => {
+    const poll = async () => {
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/course/master/${companyId}/${courseId}/module/${moduleNumber}`
-        );
-        const json = await res.json();
+        const res = await getModule(courseId, moduleNumber, userId);
 
-        if (json?.source === 'generated') {
-          setStatus('generated');
+        if (res.source === "generated") {
+          setStatus("generated");
           clearInterval(timer);
         }
-      } catch {
-        // ignorer – prøv igjen
-      }
+      } catch {}
     };
 
-    check();
-    timer = setInterval(check, 4000);
+    poll();
+    timer = setInterval(poll, 4000);
 
     return () => clearInterval(timer);
-  }, [companyId, courseId, moduleNumber]);
+  }, [courseId, moduleNumber, userId]);
 
   return status;
 }

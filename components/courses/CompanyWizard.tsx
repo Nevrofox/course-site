@@ -2,50 +2,70 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { startCourseGeneration, CourseWizardInput } from '@/lib/course';
+import { createCourse, WizardAnswers } from '@/lib/course';
 
 const questions = [
   {
-    key: 'industry',
-    question: 'Hva slags virksomhet er dette?',
-    type: 'options',
-    options: ['Logistics', 'Retail', 'IT', 'Annet'],
-  },
-  {
-    key: 'size',
-    question: 'Hvor mange ansatte skal bruke kurset?',
+    key: 'role',
+    question: 'Hva er din rolle i selskapet?',
     type: 'input',
   },
   {
-    key: 'location',
-    question: 'Hvor holder selskapet til?',
-    type: 'input',
-  },
-  {
-    key: 'systems_used',
-    question: 'Hvilke systemer jobber de i til daglig?',
-    type: 'multi',
-    options: ['Teams', 'Excel', 'SharePoint', 'Visma', 'Annet'],
-  },
-  {
-    key: 'business_goals',
-    question: 'Hva ønsker dere å oppnå med AI?',
+    key: 'primaryTasks',
+    question: 'Hva jobber du mest med i hverdagen?',
     type: 'multi',
     options: [
-      'Automatisere manuelt arbeid',
-      'Redusere tid brukt på dokumenthåndtering',
-      'Oppnå grunnleggende AI-kompetanse',
+      'Vaktlister',
+      'Bestillinger',
+      'Personaloppfølging',
+      'Rapportering',
+      'Kundeservice',
+      'Dokumentasjon',
     ],
   },
   {
-    key: 'ai_maturity',
-    question: 'Hvor komfortable er de ansatte med teknologi i dag?',
-    type: 'scale',
+    key: 'ai_experience',
+    question: 'Hvor mye erfaring har du med AI fra før?',
+    type: 'options',
+    options: ['ingen', 'litt', 'en del', 'mye'],
+  },
+  {
+    key: 'tech_comfort',
+    question: 'Hvor komfortabel er du med teknologi generelt?',
+    type: 'options',
+    options: ['lav', 'middels', 'høy'],
+  },
+  {
+    key: 'personalGoal',
+    question: 'Hva ønsker du å oppnå med AI?',
+    type: 'input',
+  },
+  {
+    key: 'learningPreference',
+    question: 'Hvordan lærer du best?',
+    type: 'options',
+    options: ['praktiske eksempler', 'video', 'lesing', 'oppgaver'],
+  },
+  {
+    key: 'biggestTimeWasters',
+    question: 'Hva stjeler mest tid i hverdagen din?',
+    type: 'multi',
     options: [
-      { label: 'Nybegynnere', value: 'low' },
-      { label: 'Litt øvet', value: 'medium' },
-      { label: 'Middels', value: 'medium' },
-      { label: 'Avansert', value: 'high' },
+      'E-post',
+      'Møter',
+      'Manuell registrering',
+      'Let etter informasjon',
+    ],
+  },
+  {
+    key: 'biggestFrustrations',
+    question: 'Hva er mest frustrerende på jobb i dag?',
+    type: 'multi',
+    options: [
+      'For mye administrasjon',
+      'For lite tid',
+      'Dårlige systemer',
+      'Uklare prosesser',
     ],
   },
 ];
@@ -55,54 +75,49 @@ export default function CompanyWizard() {
   const [answers, setAnswers] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [generated, setGenerated] = useState(false);
+
   const router = useRouter();
   const { slug } = router.query;
 
+  const userId = typeof slug === 'string' ? slug : null;
+
   const handleNext = (value: any) => {
     const key = questions[step].key;
-    setAnswers({ ...answers, [key]: value });
+    setAnswers((prev: any) => ({ ...prev, [key]: value }));
     setStep(step + 1);
   };
 
   const handleGenerate = async () => {
-    if (!slug || typeof slug !== 'string') {
-      setError('Fant ikke team-ID i URL');
+    if (!userId) {
+      setError('Fant ikke bruker/team-ID i URL');
       return;
     }
 
     setLoading(true);
     setError(null);
 
-    const payload: CourseWizardInput = {
-      company: {
-        companyId: slug,
-        name: 'Nordic Freight AS',
-        location: answers.location,
-        industry: answers.industry,
-        size: `${answers.size} ansatte`,
-      },
-      systems_used: answers.systems_used,
-      business_goals: answers.business_goals,
-      ai_maturity: answers.ai_maturity,
-      course_preferences: {
-        type: 'mixed',
-        level: 'beginner',
-        duration_per_week: '1-2 hours',
-      },
-    };
-
     try {
-      await startCourseGeneration(slug, payload);
-      setGenerated(true);
+      const payload: WizardAnswers = {
+        role: answers.role,
+        primaryTasks: answers.primaryTasks || [],
+        ai_experience: answers.ai_experience,
+        tech_comfort: answers.tech_comfort,
+        personalGoal: answers.personalGoal,
+        learningPreference: answers.learningPreference,
+        biggestTimeWasters: answers.biggestTimeWasters || [],
+        biggestFrustrations: answers.biggestFrustrations || [],
+      };
 
-      router.push({
-        pathname: `/teams/${slug}/courses`,
-        query: { generating: '1' },
-      });
+      const result = await createCourse(userId, payload);
+
+      // 🔥 HER ER FIXEN:
+      // Send med courseId til neste side
+      router.push(
+        `/teams/${userId}/courses?courseId=${result.courseId}&generating=1`
+      );
     } catch (err: any) {
-      console.error('Feil ved generering:', err);
-      setError(err.message ?? 'Noe gikk galt');
+      console.error('Error creating course:', err);
+      setError(err.message ?? 'Noe gikk galt ved opprettelse av kurs');
       setLoading(false);
     }
   };
@@ -132,12 +147,11 @@ export default function CompanyWizard() {
         {current.type === 'input' && (
           <input
             type="text"
-            placeholder="Skriv inn..."
             className="w-full border rounded px-4 py-2"
+            placeholder="Skriv inn..."
             onBlur={(e) => handleNext(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                e.preventDefault();
                 handleNext((e.target as HTMLInputElement).value);
               }
             }}
@@ -147,32 +161,16 @@ export default function CompanyWizard() {
         {current.type === 'multi' && (
           <MultiSelect options={current.options} onSubmit={handleNext} />
         )}
-
-        {current.type === 'scale' && (
-          <div className="space-y-2">
-            {current.options.map((opt) => (
-              <button
-                key={opt.label}
-                onClick={() => handleNext(opt.value)}
-                className="w-full bg-white border rounded px-4 py-2 hover:bg-gray-100"
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     );
   };
 
   const renderSummary = () => (
     <div className="max-w-xl mx-auto p-6 space-y-4">
-      <h2 className="text-xl font-bold">Oppsummering</h2>
+      <h2 className="text-xl font-bold">Klar til å lage kurs!</h2>
+
       <p>
-        Basert på det du har fortalt meg, lager jeg nå:
-        <br />– Et praktisk AI-kurs for {answers.size} ansatte i {answers.industry}
-        <br />– Med fokus på: {answers.business_goals?.join(', ')}
-        <br />– Tilpasset systemer: {answers.systems_used?.join(', ')}
+        Vi lager nå et personlig AI-kurs basert på dine svar.
       </p>
 
       <button
@@ -180,17 +178,17 @@ export default function CompanyWizard() {
         className="mt-4 bg-black text-white px-4 py-2 rounded"
         disabled={loading}
       >
-        {loading ? 'Genererer...' : 'Generer kurs'}
+        {loading ? 'Genererer kurs…' : 'Start generering'}
       </button>
 
-      {error && <p className="text-red-600 mt-2">{error}</p>}
+      {error && <p className="text-red-600">{error}</p>}
     </div>
   );
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
-      {!generated && step < questions.length && renderStep()}
-      {!generated && step === questions.length && renderSummary()}
+      {step < questions.length && renderStep()}
+      {step === questions.length && renderSummary()}
     </div>
   );
 }
@@ -206,7 +204,9 @@ function MultiSelect({
 
   const toggle = (val: string) => {
     setSelected((prev) =>
-      prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val]
+      prev.includes(val)
+        ? prev.filter((v) => v !== val)
+        : [...prev, val]
     );
   };
 
@@ -220,13 +220,14 @@ function MultiSelect({
             className={`px-3 py-1 border rounded-full ${
               selected.includes(opt)
                 ? 'bg-blue-600 text-white'
-                : 'bg-white text-black'
+                : 'bg-white'
             }`}
           >
             {opt}
           </button>
         ))}
       </div>
+
       <button
         onClick={() => onSubmit(selected)}
         className="bg-black text-white px-4 py-2 rounded"

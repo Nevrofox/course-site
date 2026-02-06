@@ -1,42 +1,30 @@
-// hooks/useGeneratedModule.ts
 import { useEffect, useState } from "react";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+import { getModule } from "@/lib/course";
 
 export function useGeneratedModule(
-  companyId: string,
   courseId: string,
-  moduleNumber: number | null
+  moduleNumber: number,
+  userId: string
 ) {
-  const [data, setData] = useState<any | null>(null);
+  const [module, setModule] = useState<any>(null);
 
   useEffect(() => {
-    if (!companyId || !courseId || !moduleNumber) return;
-
     let timer: NodeJS.Timeout;
 
-    const check = async () => {
+    async function poll() {
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/course/master/${companyId}/${courseId}/module/${moduleNumber}`
-        );
-        const json = await res.json();
-
-        // ✅ KORREKT SJEKK
-        if (json?.source === "generated") {
-          setData(json.data); // ← { moduleIntro, avsnitt, ... }
-          clearInterval(timer);
-        }
-      } catch {
-        // prøv igjen
+        const data = await getModule(userId, courseId, moduleNumber);
+        setModule(data);
+      } catch (e) {
+        console.error("Failed to poll module:", e);
       }
-    };
+    }
 
-    check();
-    timer = setInterval(check, 4000);
+    poll();
+    timer = setInterval(poll, 3000);
 
     return () => clearInterval(timer);
-  }, [companyId, courseId, moduleNumber]);
+  }, [courseId, moduleNumber, userId]);
 
-  return data;
+  return module;
 }
