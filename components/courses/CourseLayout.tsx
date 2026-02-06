@@ -14,7 +14,7 @@ export default function CourseLayout({ course: initialCourse, userId }: any) {
   const [loading, setLoading] = useState(true);
 
   const outlines = course.moduleOutlines || [];
-
+  // Ny kommentar
   // 🔁 POLL SELVE KURSET – så vi får nye moduleOutlines fortløpende
   useEffect(() => {
     let timer: NodeJS.Timeout;
