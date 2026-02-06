@@ -1,4 +1,3 @@
-// components/courses/ModuleSidebar.tsx
 import {
   LockClosedIcon,
   CheckCircleIcon,
@@ -10,15 +9,12 @@ type Module = {
   moduleTitle?: string;
 };
 
-type ModuleStatus = "locked" | "generating" | "generated";
-
 interface Props {
   modules: Module[];
   activeIndex: number | null;
   isCollapsed: boolean;
   onToggle: () => void;
   onSelect: (index: number) => void;
-  moduleStatuses?: Record<number, ModuleStatus>;
 }
 
 export default function ModuleSidebar({
@@ -27,8 +23,11 @@ export default function ModuleSidebar({
   isCollapsed,
   onToggle,
   onSelect,
-  moduleStatuses = {},
 }: Props) {
+
+  // 🔥 MAGIEN: vi regner ut hvilke moduler som EKSISTERER basert på outlines
+  const highestAvailableModule = modules.length;
+
   return (
     <div className="border-r border-gray-200 bg-gray-50 px-2 py-3 w-fit min-w-[140px] max-w-[200px]">
       <h3 className="mb-3 text-sm font-semibold text-gray-700">
@@ -36,11 +35,16 @@ export default function ModuleSidebar({
       </h3>
 
       <div className="space-y-1">
-        {modules.map((m, idx) => {
-          const status =
-            m.moduleNumber !== undefined
-              ? moduleStatuses[m.moduleNumber] ?? "locked"
-              : "locked";
+        {[1, 2, 3].map((moduleNumber, idx) => {
+
+          // 🔥 STATUSLOGIKK
+          let status: "locked" | "generating" | "generated" = "locked";
+
+          if (moduleNumber <= highestAvailableModule) {
+            status = "generated";
+          } else if (moduleNumber === highestAvailableModule + 1) {
+            status = "generating";
+          }
 
           const isActive = idx === activeIndex;
           const isClickable = status === "generated";
@@ -62,7 +66,7 @@ export default function ModuleSidebar({
               ].join(" ")}
             >
               <span>
-                Modul {m.moduleNumber}
+                Modul {moduleNumber}
               </span>
 
               {/* STATUS ICON */}
