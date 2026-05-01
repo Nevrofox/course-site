@@ -15,23 +15,29 @@ export const applyTheme = (theme: Theme) => {
     case 'dark':
       document.documentElement.classList.add('dark');
       document.documentElement.setAttribute('data-theme', 'black');
-      localStorage.setItem('theme', 'dark');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('theme', 'dark');
+      }
       break;
     case 'light':
       document.documentElement.classList.remove('dark');
       document.documentElement.setAttribute('data-theme', 'corporate');
-      localStorage.setItem('theme', 'light');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('theme', 'light');
+      }
       break;
     case 'system':
     default:
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-        document.documentElement.setAttribute('data-theme', 'black');
-        localStorage.removeItem('theme');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.setAttribute('data-theme', 'corporate');
-        localStorage.removeItem('theme');
+      if (typeof window !== 'undefined') {
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-theme', 'black');
+          localStorage.removeItem('theme');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.setAttribute('data-theme', 'corporate');
+          localStorage.removeItem('theme');
+        }
       }
       break;
   }

@@ -50,7 +50,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   }, [router.events]);
 
   if (env.darkModeEnabled) {
-    applyTheme(localStorage.getItem('theme') as Theme);
+    if (typeof window !== 'undefined') {
+      applyTheme(localStorage.getItem('theme') as Theme);
+    }
   }
 
   const getLayout =

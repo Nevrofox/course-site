@@ -13,7 +13,9 @@ const useTheme = () => {
   const { t } = useTranslation('common');
 
   useEffect(() => {
-    setTheme(localStorage.getItem('theme'));
+    if (typeof window !== 'undefined') {
+      setTheme(localStorage.getItem('theme'));
+    }
   }, []);
 
   const themes: ThemesProps[] = [
