@@ -38,6 +38,7 @@ jobs:
           path: |
             .next/standalone
             .next/static
+            .next/BUILD_ID
             public
             package.json
             .env
