@@ -28,21 +28,17 @@ jobs:
           npm install
           npm run build
 
-          echo "---- Preparing standalone output for Azure ----"
-          mkdir -p .next
-          cp -r .next/standalone/* .
-          cp -r .next/static ./.next/static
-          cp -r .next/server ./.next/server
-          cp .next/routes-manifest.json ./.next/
-          cp .next/build-manifest.json ./.next/
-          cp .next/prerender-manifest.json ./.next/
-
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
           path: |
-            .
+            .next/standalone
+            .next/static
+            .next/BUILD_ID
+            public
+            package.json
+            .env
 
   deploy:
     runs-on: ubuntu-latest
