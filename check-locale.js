@@ -30,13 +30,17 @@ files.forEach((file) => {
   if (file.isDirectory()) {
     return;
   }
-  if (file.path.includes('node_modules')) {
+
+  // Node 20+ renamed Dirent.path to Dirent.parentPath; keep both for compatibility.
+  const dirPath = file.parentPath ?? file.path;
+
+  if (dirPath.includes('node_modules')) {
     return;
   }
 
   if (['.ts', '.tsx'].includes(path.extname(file.name).toLowerCase())) {
     const fileContent = fs.readFileSync(
-      path.join(file.path, file.name),
+      path.join(dirPath, file.name),
       'utf8'
     );
 
@@ -46,7 +50,7 @@ files.forEach((file) => {
       if (!localeFile[id]) {
         error = true;
         console.error(
-          `Missing key: ${path.join(file.path, file.name)} - ${id}`
+          `Missing key: ${path.join(dirPath, file.name)} - ${id}`
         );
       }
     });
@@ -57,7 +61,7 @@ files.forEach((file) => {
       if (!localeFile[id]) {
         error = true;
         console.error(
-          `Missing key: ${path.join(file.path, file.name)} - ${id}`
+          `Missing key: ${path.join(dirPath, file.name)} - ${id}`
         );
       }
     });
@@ -75,7 +79,7 @@ files.forEach((file) => {
           if (!localeFile[id]) {
             error = true;
             console.error(
-              `Missing key: ${path.join(file.path, file.name)} - ${id}`
+              `Missing key: ${path.join(dirPath, file.name)} - ${id}`
             );
           }
         });
