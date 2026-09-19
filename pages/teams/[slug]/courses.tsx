@@ -46,7 +46,12 @@ export default function CoursesPage() {
   }, [userId, generating, courseIdFromUrl]);
 
   if (!course) {
-    return <CourseEmptyState isGenerating={generating} />;
+    return (
+      <CourseEmptyState
+        isGenerating={generating}
+        createCourseHref={`/teams/${userId}/get-started`}
+      />
+    );
   }
 
   return <CourseLayout course={course} userId={userId!} />;
