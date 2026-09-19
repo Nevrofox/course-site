@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import ModuleSidebar from "./ModuleSidebar";
-import TopicList from "./TopicList";
-import TopicContent from "./TopicContent";
-import { getModule, getCourse } from "@/lib/course";
+import { useState, useEffect } from 'react';
+import ModuleSidebar from './ModuleSidebar';
+import TopicList from './TopicList';
+import TopicContent from './TopicContent';
+import { getModule, getCourse } from '@/lib/course';
 
 export default function CourseLayout({ course: initialCourse, userId }: any) {
   const [course, setCourse] = useState<any>(initialCourse);
@@ -21,7 +21,7 @@ export default function CourseLayout({ course: initialCourse, userId }: any) {
         const updated = await getCourse(userId, course.courseId);
         setCourse(updated);
       } catch (e) {
-        console.error("Error polling course:", e);
+        console.error('Error polling course:', e);
       }
     }
 
@@ -37,7 +37,7 @@ export default function CourseLayout({ course: initialCourse, userId }: any) {
         setModuleData(data);
         setLoading(false);
       } catch (e) {
-        console.error("Error polling module:", e);
+        console.error('Error polling module:', e);
       }
     }
 
@@ -58,15 +58,15 @@ export default function CourseLayout({ course: initialCourse, userId }: any) {
   const generatedSections = moduleData?.sections || [];
 
   const generatedIntro = generatedSections.find(
-    (s: any) => s.sectionId === "INTRO"
+    (s: any) => s.sectionId === 'INTRO'
   );
 
   const introTopic = generatedIntro || {
     topicNumber: 1,
     sectionNumber: 1,
-    sectionId: "INTRO",
-    title: "Introduksjon",
-    bodyText: "Introduksjonen genereres. Vennligst vent...",
+    sectionId: 'INTRO',
+    title: 'Introduksjon',
+    bodyText: 'Introduksjonen genereres. Vennligst vent...',
   };
 
   const realTopics = (skeleton?.sections || []).map((s: any, index: number) => {
@@ -95,22 +95,22 @@ export default function CourseLayout({ course: initialCourse, userId }: any) {
 
   const topicStatusToUse: Record<string, any> = {
     ...(moduleData?.topicStatus || {}),
-    "1": {
+    '1': {
       hasContent: true,
       clickable: true,
     },
   };
 
-  const moduleStatuses: Record<number, "locked" | "generating" | "generated"> =
+  const moduleStatuses: Record<number, 'locked' | 'generating' | 'generated'> =
     {};
 
   outlines.forEach((m: any) => {
     const moduleNumber = Number(m.moduleNumber);
 
     if (m.sections && m.sections.length > 0) {
-      moduleStatuses[moduleNumber] = "generated";
+      moduleStatuses[moduleNumber] = 'generated';
     } else {
-      moduleStatuses[moduleNumber] = "generating";
+      moduleStatuses[moduleNumber] = 'generating';
     }
   });
 
@@ -123,8 +123,6 @@ export default function CourseLayout({ course: initialCourse, userId }: any) {
           setActiveModule(i + 1);
           setActiveTopic(null);
         }}
-        
-        
       />
 
       <div className="p-6 flex-1">
@@ -140,9 +138,7 @@ export default function CourseLayout({ course: initialCourse, userId }: any) {
 
         {!loading && activeTopic && (
           <TopicContent
-            topic={mergedTopics.find(
-              (t: any) => t.topicNumber === activeTopic
-            )}
+            topic={mergedTopics.find((t: any) => t.topicNumber === activeTopic)}
             onBack={handleBackToOverview}
             hasNext={mergedTopics.some(
               (t: any) => t.topicNumber === (activeTopic || 0) + 1

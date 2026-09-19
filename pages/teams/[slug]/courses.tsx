@@ -1,8 +1,8 @@
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import CourseEmptyState from "@/components/courses/CourseEmptyState";
-import CourseLayout from "@/components/courses/CourseLayout";
-import { useCoursePolling } from "../../../hooks/useCoursePolling";
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import CourseEmptyState from '@/components/courses/CourseEmptyState';
+import CourseLayout from '@/components/courses/CourseLayout';
+import { useCoursePolling } from '../../../hooks/useCoursePolling';
 
 export default function CoursesPage() {
   const router = useRouter();
@@ -12,15 +12,13 @@ export default function CoursesPage() {
 
   // 👉 Hent userId fra URL (slug), IKKE hardkodet
   const userId =
-    typeof router.query.slug === "string"
-      ? router.query.slug
-      : null;
+    typeof router.query.slug === 'string' ? router.query.slug : null;
 
   // Vent til router er klar før vi leser query
   useEffect(() => {
     if (!router.isReady) return;
 
-    if (router.query.generating === "1") {
+    if (router.query.generating === '1') {
       setGenerating(true);
     }
   }, [router.isReady, router.query.generating]);
@@ -30,17 +28,17 @@ export default function CoursesPage() {
 
   useCoursePolling({
     courseId: courseIdFromUrl,
-    userId: userId || "",
+    userId: userId || '',
     enabled: generating && !!userId,
     onReady: (c) => {
-      console.log("Course ready from polling:", c);
+      console.log('Course ready from polling:', c);
       setCourse(c);
       setGenerating(false);
     },
   });
 
   useEffect(() => {
-    console.log("Polling status:", {
+    console.log('Polling status:', {
       userId,
       generating,
       courseIdFromUrl,

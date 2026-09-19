@@ -32,21 +32,15 @@ export default function TopicContentView({ avsnitt, onBack }: Props) {
         ← Tilbake til topics
       </button>
 
-      <h3 className="text-xl font-semibold text-gray-900">
-        {avsnitt.title}
-      </h3>
+      <h3 className="text-xl font-semibold text-gray-900">{avsnitt.title}</h3>
 
       {avsnitt.introduction && (
-        <p className="text-gray-700">
-          {avsnitt.introduction}
-        </p>
+        <p className="text-gray-700">{avsnitt.introduction}</p>
       )}
 
       {avsnitt.mainContent?.map((c, i) => (
         <div key={i} className="space-y-2">
-          <h4 className="font-semibold text-gray-800">
-            {c.heading}
-          </h4>
+          <h4 className="font-semibold text-gray-800">{c.heading}</h4>
           <p className="text-gray-700">{c.content}</p>
 
           {c.example && (

@@ -87,19 +87,19 @@ supabase db push
 
 ## Scripts
 
-| Script | Description |
-| --- | --- |
-| `npm run dev` | Start the dev server on port 4002 |
-| `npm run build` | Production build |
-| `npm run start` | Start the production server |
-| `npm run check-types` | TypeScript type-check |
-| `npm run check-lint` | ESLint |
-| `npm run check-format` | Prettier check |
-| `npm run test` | Jest unit tests |
-| `npm run test:e2e` | Playwright e2e tests |
-| `npm run supabase:start` / `supabase:reset` / `supabase:types` | Local Supabase stack helpers |
-| `npm run seed` | Seed demo data via Supabase |
-| `npm run delete-team -- <teamId>` | Admin script to inspect/delete a team and its data |
+| Script                                                         | Description                                        |
+| -------------------------------------------------------------- | -------------------------------------------------- |
+| `npm run dev`                                                  | Start the dev server on port 4002                  |
+| `npm run build`                                                | Production build                                   |
+| `npm run start`                                                | Start the production server                        |
+| `npm run check-types`                                          | TypeScript type-check                              |
+| `npm run check-lint`                                           | ESLint                                             |
+| `npm run check-format`                                         | Prettier check                                     |
+| `npm run test`                                                 | Jest unit tests                                    |
+| `npm run test:e2e`                                             | Playwright e2e tests                               |
+| `npm run supabase:start` / `supabase:reset` / `supabase:types` | Local Supabase stack helpers                       |
+| `npm run seed`                                                 | Seed demo data via Supabase                        |
+| `npm run delete-team -- <teamId>`                              | Admin script to inspect/delete a team and its data |
 
 ## Deployment
 

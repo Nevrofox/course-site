@@ -8,11 +8,11 @@ interface Props {
 }
 
 const loadingMessages = [
-  "Analyserer svarene dine...",
-  "Bygger kursstruktur...",
-  "Tilpasser innhold til din rolle...",
-  "Setter sammen moduler...",
-  "Snart klart..."
+  'Analyserer svarene dine...',
+  'Bygger kursstruktur...',
+  'Tilpasser innhold til din rolle...',
+  'Setter sammen moduler...',
+  'Snart klart...',
 ];
 
 const CourseEmptyState = ({ isGenerating }: Props) => {
@@ -30,7 +30,6 @@ const CourseEmptyState = ({ isGenerating }: Props) => {
 
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center">
-      
       <div className="mb-4 rounded-full bg-indigo-50 p-3 animate-pulse">
         <AcademicCapIcon className="h-8 w-8 text-indigo-600" />
       </div>

@@ -44,7 +44,11 @@ const DURATION_OPTIONS = ['10 minutter', '20 minutter', '30 minutter'] as const;
 
 const questions = [
   { key: 'rolle', question: 'Hva er din rolle?', type: 'input' },
-  { key: 'bransje', question: 'Hvilken bransje/jobbfelt jobber du i?', type: 'input' },
+  {
+    key: 'bransje',
+    question: 'Hvilken bransje/jobbfelt jobber du i?',
+    type: 'input',
+  },
   {
     key: 'tools',
     question: 'Hvilke verktøy bruker du (eller ønsker å bruke)?',
@@ -87,7 +91,8 @@ const questions = [
   },
   {
     key: 'knowledge',
-    question: 'Kort: hva kan du fra før, og hva føler du at du mangler kontroll på?',
+    question:
+      'Kort: hva kan du fra før, og hva føler du at du mangler kontroll på?',
     type: 'textarea',
   },
   {
@@ -129,7 +134,9 @@ export default function CompanyWizard() {
   }) => {
     const constraints: string[] = [];
 
-    constraints.push(p.language === 'no' ? 'Svar alltid på norsk' : 'Always answer in English');
+    constraints.push(
+      p.language === 'no' ? 'Svar alltid på norsk' : 'Always answer in English'
+    );
 
     if (p.bransje?.trim()) {
       constraints.push(`Eksempler må være relevante for ${p.bransje.trim()}`);
@@ -143,8 +150,7 @@ export default function CompanyWizard() {
   };
 
   const previewPayload: WizardPayload = useMemo(() => {
-    const language: 'no' | 'en' =
-      answers.language === 'English' ? 'en' : 'no';
+    const language: 'no' | 'en' = answers.language === 'English' ? 'en' : 'no';
 
     const stil = (answers.stil as string) || 'Utfordrende og profesjonell';
 
@@ -160,7 +166,11 @@ export default function CompanyWizard() {
       knowledge: (answers.knowledge || '').trim(),
       sessionDuration: (answers.sessionDuration as string) || '20 minutter',
       stil,
-      constraints: buildConstraints({ language, bransje: answers.bransje || '', stil }),
+      constraints: buildConstraints({
+        language,
+        bransje: answers.bransje || '',
+        stil,
+      }),
     };
 
     return payload;
@@ -311,7 +321,8 @@ export default function CompanyWizard() {
       <h2 className="text-xl font-bold">Preview før generering</h2>
 
       <p className="text-gray-700">
-        Dette er det som sendes til skallflyten når du trykker “Start generering”.
+        Dette er det som sendes til skallflyten når du trykker “Start
+        generering”.
       </p>
 
       <div className="rounded border bg-white p-4 text-sm overflow-auto">

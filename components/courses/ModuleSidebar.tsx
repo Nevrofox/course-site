@@ -2,7 +2,7 @@ import {
   LockClosedIcon,
   CheckCircleIcon,
   ArrowPathIcon,
-} from "@heroicons/react/24/outline";
+} from '@heroicons/react/24/outline';
 
 type Module = {
   moduleNumber?: number;
@@ -20,30 +20,26 @@ export default function ModuleSidebar({
   activeIndex,
   onSelect,
 }: Props) {
-
   // 🔥 MAGIEN: vi regner ut hvilke moduler som EKSISTERER basert på outlines
   const highestAvailableModule = modules.length;
 
   return (
     <div className="border-r border-gray-200 bg-gray-50 px-2 py-3 w-fit min-w-[140px] max-w-[200px]">
-      <h3 className="mb-3 text-sm font-semibold text-gray-700">
-        Kursinnhold
-      </h3>
+      <h3 className="mb-3 text-sm font-semibold text-gray-700">Kursinnhold</h3>
 
       <div className="space-y-1">
         {[1, 2, 3].map((moduleNumber, idx) => {
-
           // 🔥 STATUSLOGIKK
-          let status: "locked" | "generating" | "generated" = "locked";
+          let status: 'locked' | 'generating' | 'generated' = 'locked';
 
           if (moduleNumber <= highestAvailableModule) {
-            status = "generated";
+            status = 'generated';
           } else if (moduleNumber === highestAvailableModule + 1) {
-            status = "generating";
+            status = 'generating';
           }
 
           const isActive = idx === activeIndex;
-          const isClickable = status === "generated";
+          const isClickable = status === 'generated';
 
           return (
             <button
@@ -52,29 +48,25 @@ export default function ModuleSidebar({
               disabled={!isClickable}
               onClick={() => isClickable && onSelect(idx)}
               className={[
-                "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm transition whitespace-nowrap",
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-gray-700",
+                'flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm transition whitespace-nowrap',
+                isActive ? 'bg-indigo-600 text-white' : 'text-gray-700',
                 !isClickable
-                  ? "cursor-not-allowed opacity-60"
-                  : "hover:bg-indigo-100",
-              ].join(" ")}
+                  ? 'cursor-not-allowed opacity-60'
+                  : 'hover:bg-indigo-100',
+              ].join(' ')}
             >
-              <span>
-                Modul {moduleNumber}
-              </span>
+              <span>Modul {moduleNumber}</span>
 
               {/* STATUS ICON */}
-              {status === "locked" && (
+              {status === 'locked' && (
                 <LockClosedIcon className="h-4 w-4 text-gray-400" />
               )}
 
-              {status === "generating" && (
+              {status === 'generating' && (
                 <ArrowPathIcon className="h-4 w-4 animate-spin text-indigo-400" />
               )}
 
-              {status === "generated" && (
+              {status === 'generated' && (
                 <CheckCircleIcon className="h-4 w-4 text-emerald-500" />
               )}
             </button>
