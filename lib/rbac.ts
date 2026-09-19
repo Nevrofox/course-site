@@ -1,6 +1,12 @@
-import { Role } from '@prisma/client';
+import type { Role } from '@/types/db';
 import { ApiError } from './errors';
 import { getTeamMember } from 'models/team';
+
+const Role = {
+  MEMBER: 'MEMBER',
+  ADMIN: 'ADMIN',
+  OWNER: 'OWNER',
+} as const satisfies Record<Role, Role>;
 
 export async function validateMembershipOperation(
   memberId: string,

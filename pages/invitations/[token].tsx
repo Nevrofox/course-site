@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { ReactElement } from 'react';
 import { NextPageWithLayout } from 'types';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/hooks/useSession';
 import { useTranslation } from 'next-i18next';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -38,11 +38,11 @@ const AcceptTeamInvitation: NextPageWithLayout = () => {
     ? authUser?.email === invitation.email
     : false;
 
-  const emailDomainMatch = invitation.allowedDomains.length
-    ? invitation.allowedDomains.includes(emailDomain!)
+  const emailDomainMatch = invitation.allowed_domains.length
+    ? invitation.allowed_domains.includes(emailDomain!)
     : true;
 
-  const acceptInvite = invitation.sentViaEmail ? emailMatch : emailDomainMatch;
+  const acceptInvite = invitation.sent_via_email ? emailMatch : emailDomainMatch;
 
   return (
     <>
@@ -67,14 +67,14 @@ const AcceptTeamInvitation: NextPageWithLayout = () => {
 
           {/* User authenticated and email does not match */}
           {status === 'authenticated' &&
-            invitation.sentViaEmail &&
+            invitation.sent_via_email &&
             authUser?.email &&
             !emailMatch && <EmailMismatch email={authUser.email} />}
 
           {/* User authenticated and email domain doesn not match */}
           {status === 'authenticated' &&
-            !invitation.sentViaEmail &&
-            invitation.allowedDomains.length > 0 &&
+            !invitation.sent_via_email &&
+            invitation.allowed_domains.length > 0 &&
             !emailDomainMatch && (
               <EmailDomainMismatch
                 invitation={invitation}

@@ -1,6 +1,6 @@
 import { chromium, expect, test as base } from '@playwright/test';
 
-import { prisma } from '@/lib/prisma';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { user, team } from '../support/helper';
 import { JoinPage, LoginPage, MemberPage } from '../support/fixtures';
 import { testRole } from '../support/fixtures/consts';
@@ -238,11 +238,12 @@ test('Should not allow email with invalid length', async ({
 });
 
 async function getAndVerifyInvitation(email: string) {
-  const invitation = await prisma.invitation.findFirst({
-    where: {
-      email: email,
-    },
-  });
+  const supabase = createAdminClient();
+  const { data: invitation } = await supabase
+    .from('invitation')
+    .select('*')
+    .eq('email', email)
+    .maybeSingle();
   expect(invitation).not.toBeNull();
   return invitation;
 }

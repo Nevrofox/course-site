@@ -9,7 +9,6 @@ import { defaultHeaders, passwordPolicies } from '@/lib/common';
 import { maxLengthPolicies } from '@/lib/common';
 
 const schema = Yup.object().shape({
-  currentPassword: Yup.string().required().max(maxLengthPolicies.password),
   newPassword: Yup.string()
     .required()
     .min(passwordPolicies.minLength)
@@ -21,7 +20,6 @@ const UpdatePassword = () => {
 
   const formik = useFormik({
     initialValues: {
-      currentPassword: '',
       newPassword: '',
     },
     validationSchema: schema,
@@ -54,20 +52,6 @@ const UpdatePassword = () => {
               <Card.Description>{t('change-password-text')}</Card.Description>
             </Card.Header>
             <div className="flex flex-col space-y-3">
-              <InputWithLabel
-                type="password"
-                label={t('current-password')}
-                name="currentPassword"
-                placeholder={t('current-password')}
-                value={formik.values.currentPassword}
-                error={
-                  formik.touched.currentPassword
-                    ? formik.errors.currentPassword
-                    : undefined
-                }
-                onChange={formik.handleChange}
-                className="text-sm"
-              />
               <InputWithLabel
                 type="password"
                 label={t('new-password')}

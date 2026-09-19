@@ -22,10 +22,6 @@ updates:
         patterns:
           - 'next'
           - 'eslint-config-next'
-      prisma:
-        patterns:
-          - '@prisma/client'
-          - 'prisma'
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:

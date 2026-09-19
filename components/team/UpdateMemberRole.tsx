@@ -1,6 +1,6 @@
 import { defaultHeaders } from '@/lib/common';
 import { availableRoles } from '@/lib/permissions';
-import { Team, TeamMember } from '@prisma/client';
+import { Team, TeamMember } from '@/types/db';
 import { useTranslation } from 'next-i18next';
 import toast from 'react-hot-toast';
 import type { ApiResponse } from 'types';
@@ -18,7 +18,7 @@ const UpdateMemberRole = ({ team, member }: UpdateMemberRoleProps) => {
       method: 'PATCH',
       headers: defaultHeaders,
       body: JSON.stringify({
-        memberId: member.userId,
+        memberId: member.user_id,
         role,
       }),
     });

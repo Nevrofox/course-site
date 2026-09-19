@@ -1,22 +1,17 @@
-import { useState, useRef } from 'react';
 import { InputWithLabel } from '@/components/shared';
-import { defaultHeaders, passwordPolicies } from '@/lib/common';
+import { passwordPolicies } from '@/lib/common';
 import { useFormik } from 'formik';
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { Button } from 'react-daisyui';
 import toast from 'react-hot-toast';
-import type { ApiResponse } from 'types';
 import * as Yup from 'yup';
 import TogglePasswordVisibility from '../shared/TogglePasswordVisibility';
 import AgreeMessage from './AgreeMessage';
-import GoogleReCAPTCHA from '../shared/GoogleReCAPTCHA';
-import ReCAPTCHA from 'react-google-recaptcha';
 import { maxLengthPolicies } from '@/lib/common';
-
-interface JoinProps {
-  recaptchaSiteKey: string | null;
-}
+import { createClient } from '@/lib/supabase/client';
+import env from '@/lib/env';
 
 const JoinUserSchema = Yup.object().shape({
   name: Yup.string().required().max(maxLengthPolicies.name),
@@ -25,15 +20,12 @@ const JoinUserSchema = Yup.object().shape({
     .required()
     .min(passwordPolicies.minLength)
     .max(maxLengthPolicies.password),
-  team: Yup.string().required().min(3).max(maxLengthPolicies.team),
 });
 
-const Join = ({ recaptchaSiteKey }: JoinProps) => {
+const Join = () => {
   const router = useRouter();
   const { t } = useTranslation('common');
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
-  const [recaptchaToken, setRecaptchaToken] = useState<string>('');
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const handlePasswordVisibility = () => {
     setIsPasswordVisible((prev) => !prev);
@@ -44,39 +36,34 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
       name: '',
       email: '',
       password: '',
-      team: '',
     },
     validationSchema: JoinUserSchema,
     validateOnChange: false,
     validateOnBlur: false,
     onSubmit: async (values) => {
-      const response = await fetch('/api/auth/join', {
-        method: 'POST',
-        headers: defaultHeaders,
-        body: JSON.stringify({
-          ...values,
-          recaptchaToken,
-        }),
+      const supabase = createClient();
+
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: { name: values.name },
+          emailRedirectTo: `${env.appUrl}/teams?newTeam=1`,
+        },
       });
 
-      const json = (await response.json()) as ApiResponse<{
-        confirmEmail: boolean;
-      }>;
-
-      recaptchaRef.current?.reset();
-
-      if (!response.ok) {
-        toast.error(json.error.message);
+      if (error) {
+        toast.error(error.message);
         return;
       }
 
       formik.resetForm();
 
-      if (json.data.confirmEmail) {
-        router.push('/auth/verify-email');
-      } else {
+      if (data.session) {
         toast.success(t('successfully-joined'));
-        router.push('/auth/login');
+        router.push('/teams?newTeam=1');
+      } else {
+        router.push('/auth/verify-email');
       }
     },
   });
@@ -91,15 +78,6 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
           placeholder={t('your-name')}
           value={formik.values.name}
           error={formik.touched.name ? formik.errors.name : undefined}
-          onChange={formik.handleChange}
-        />
-        <InputWithLabel
-          type="text"
-          label={t('team')}
-          name="team"
-          placeholder={t('team-name')}
-          value={formik.values.team}
-          error={formik.errors.team}
           onChange={formik.handleChange}
         />
         <InputWithLabel
@@ -126,11 +104,6 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
             handlePasswordVisibility={handlePasswordVisibility}
           />
         </div>
-        <GoogleReCAPTCHA
-          recaptchaRef={recaptchaRef}
-          onChange={setRecaptchaToken}
-          siteKey={recaptchaSiteKey}
-        />
       </div>
       <div className="mt-3 space-y-3">
         <Button

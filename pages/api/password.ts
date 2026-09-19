@@ -1,13 +1,7 @@
-import { hashPassword, verifyPassword } from '@/lib/auth';
 import { getSession } from '@/lib/session';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { ApiError } from 'next/dist/server/api-utils';
 import { recordMetric } from '@/lib/metrics';
-import { getCookie } from 'cookies-next';
-import { sessionTokenCookieName } from '@/lib/nextAuth';
-import env from '@/lib/env';
-import { findFirstUserOrThrow, updateUser } from 'models/user';
-import { deleteManySessions } from 'models/session';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { validateWithSchema, updatePasswordSchema } from '@/lib/zod';
 
 export default async function handler(
@@ -38,36 +32,17 @@ export default async function handler(
 const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getSession(req, res);
 
-  const { currentPassword, newPassword } = validateWithSchema(
-    updatePasswordSchema,
-    req.body
+  const { newPassword } = validateWithSchema(updatePasswordSchema, req.body);
+
+  const supabase = createAdminClient();
+
+  const { error } = await supabase.auth.admin.updateUserById(
+    session!.user.id,
+    { password: newPassword }
   );
 
-  const user = await findFirstUserOrThrow({
-    where: { id: session?.user.id },
-  });
-
-  if (!(await verifyPassword(currentPassword, user.password as string))) {
-    throw new ApiError(400, 'Your current password is incorrect');
-  }
-
-  await updateUser({
-    where: { id: session?.user.id },
-    data: { password: await hashPassword(newPassword) },
-  });
-
-  // Remove all sessions other than the current one
-  if (env.nextAuth.sessionStrategy === 'database') {
-    const sessionToken = await getCookie(sessionTokenCookieName, { req, res });
-
-    await deleteManySessions({
-      where: {
-        userId: session?.user.id,
-        NOT: {
-          sessionToken,
-        },
-      },
-    });
+  if (error) {
+    throw new Error(error.message);
   }
 
   recordMetric('user.password.updated');

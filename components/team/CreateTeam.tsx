@@ -1,5 +1,5 @@
 import { defaultHeaders, maxLengthPolicies } from '@/lib/common';
-import type { Team } from '@prisma/client';
+import type { Team } from '@/types/db';
 import { useFormik } from 'formik';
 import useTeams from 'hooks/useTeams';
 import { useTranslation } from 'next-i18next';

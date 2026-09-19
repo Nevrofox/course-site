@@ -1,7 +1,7 @@
 import { test as base } from '@playwright/test';
 import { user, team } from '../support/helper';
 import { JoinPage, LoginPage, SettingsPage } from '../support/fixtures';
-import { prisma } from '@/lib/prisma';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const teamNewInfo = {
   name: 'New Team Name',
@@ -34,10 +34,11 @@ const test = base.extend<TeamSettingsFixture>({
 });
 
 test.afterAll(async () => {
-  await prisma.team.update({
-    where: { slug: teamNewInfo.sluggified },
-    data: { name: team.name, slug: team.slug },
-  });
+  const supabase = createAdminClient();
+  await supabase
+    .from('team')
+    .update({ name: team.name, slug: team.slug })
+    .eq('slug', teamNewInfo.sluggified);
 });
 
 test('Should be able to update team name', async ({

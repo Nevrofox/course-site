@@ -1,6 +1,6 @@
 import { WithLoadingAndError } from '@/components/shared';
 import { EmptyState } from '@/components/shared';
-import { Team } from '@prisma/client';
+import { Team } from '@/types/db';
 import useWebhooks from 'hooks/useWebhooks';
 import { useTranslation } from 'next-i18next';
 import React, { useState } from 'react';

@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { Team } from './db';
 
 type ApiError = {
   code: number;
@@ -16,13 +16,9 @@ export type ApiResponse<T = unknown> =
       error: ApiError;
     };
 
-export type TeamWithMemberCount = Prisma.TeamGetPayload<{
-  include: {
-    _count: {
-      select: { members: true };
-    };
-  };
-}>;
+export type TeamWithMemberCount = Team & {
+  _count: { members: number };
+};
 
 export type WebhookFormSchema = {
   name: string;
@@ -48,29 +44,13 @@ export type AppEvent =
   | 'team.created'
   | 'team.updated'
   | 'team.removed'
-  | 'apikey.created'
-  | 'apikey.removed'
-  | 'apikey.fetched'
-  | 'apikey.removed'
   | 'webhook.created'
   | 'webhook.removed'
   | 'webhook.fetched'
   | 'webhook.updated';
 
-export type AUTH_PROVIDER =
-  | 'github'
-  | 'google'
-  | 'saml'
-  | 'email'
-  | 'credentials'
-  | 'idp-initiated';
-
 export interface TeamFeature {
-  sso: boolean;
-  dsync: boolean;
   auditLog: boolean;
   webhook: boolean;
-  apiKey: boolean;
-  payments: boolean;
   deleteTeam: boolean;
 }

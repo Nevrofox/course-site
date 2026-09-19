@@ -1,7 +1,6 @@
-import type { Team } from '@prisma/client';
+import type { Team } from '@/types/db';
 import { Client } from '@retracedhq/retraced';
 import type { CRUD, Event } from '@retracedhq/retraced';
-import type { User } from 'next-auth';
 
 import env from './env';
 
@@ -24,7 +23,7 @@ type EventType =
 
 type Request = {
   action: EventType;
-  user: User;
+  user: { id: string; name: string | null };
   team: Team;
   crud: CRUD;
   // target: Target;

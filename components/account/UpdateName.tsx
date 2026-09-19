@@ -6,14 +6,12 @@ import { Button, Input } from 'react-daisyui';
 import type { ApiResponse } from 'types';
 import { Card } from '@/components/shared';
 import { defaultHeaders } from '@/lib/common';
-import { User } from '@prisma/client';
-import { useSession } from 'next-auth/react';
+import { User } from '@/types/db';
 import { useRouter } from 'next/router';
 import { updateAccountSchema } from '@/lib/zod';
 
 const UpdateName = ({ user }: { user: Partial<User> }) => {
   const { t } = useTranslation('common');
-  const { update } = useSession();
   const router = useRouter();
 
   const formik = useFormik({
@@ -41,10 +39,6 @@ const UpdateName = ({ user }: { user: Partial<User> }) => {
         toast.error(json.error.message);
         return;
       }
-
-      await update({
-        name: values.name,
-      });
 
       router.replace('/settings/account');
       toast.success(t('successfully-updated'));

@@ -2,20 +2,13 @@ import { z } from 'zod';
 import { slugify } from '../server-common';
 import {
   teamName,
-  apiKeyId,
   slug,
   domain,
   email,
   password,
-  token,
   role,
   sentViaEmail,
   domains,
-  expiredToken,
-  sessionId,
-  recaptchaToken,
-  priceId,
-  quantity,
   memberId,
   inviteToken,
   url,
@@ -26,14 +19,6 @@ import {
   image,
   eventTypes,
 } from './primitives';
-
-export const createApiKeySchema = z.object({
-  name: name(50),
-});
-
-export const deleteApiKeySchema = z.object({
-  apiKeyId,
-});
 
 export const teamSlugSchema = z.object({
   slug,
@@ -62,25 +47,7 @@ export const updateAccountSchema = z.union([
 ]);
 
 export const updatePasswordSchema = z.object({
-  currentPassword: password,
   newPassword: password,
-});
-
-export const userJoinSchema = z.union([
-  z.object({
-    team: teamName,
-    slug,
-  }),
-  z.object({
-    name: name(),
-    email,
-    password,
-  }),
-]);
-
-export const resetPasswordSchema = z.object({
-  password,
-  token,
 });
 
 export const inviteViaEmailSchema = z.union([
@@ -95,29 +62,6 @@ export const inviteViaEmailSchema = z.union([
     domains,
   }),
 ]);
-
-export const resendLinkRequestSchema = z.object({
-  email,
-  expiredToken,
-});
-
-export const deleteSessionSchema = z.object({
-  id: sessionId,
-});
-
-export const forgotPasswordSchema = z.object({
-  email,
-  recaptchaToken: recaptchaToken.optional(),
-});
-
-export const resendEmailToken = z.object({
-  email,
-});
-
-export const checkoutSessionSchema = z.object({
-  price: priceId,
-  quantity: quantity.optional(),
-});
 
 export const updateMemberSchema = z.object({
   role,

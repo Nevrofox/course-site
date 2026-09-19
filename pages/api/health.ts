@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 import packageInfo from '../../package.json';
 
@@ -12,7 +12,12 @@ export default async function handler(
       throw new Error('Method not allowed');
     }
 
-    await prisma.$queryRaw`SELECT 1`;
+    const supabase = createAdminClient();
+    const { error } = await supabase.from('team').select('id').limit(1);
+
+    if (error) {
+      throw error;
+    }
 
     res.status(200).json({
       version: packageInfo.version,

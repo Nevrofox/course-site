@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'next-i18next';
 
 import Modal from '../shared/Modal';
-import type { Team } from '@prisma/client';
+import type { Team } from '@/types/db';
 import InviteViaEmail from './InviteViaEmail';
 import InviteViaLink from './InviteViaLink';
 

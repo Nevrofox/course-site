@@ -16,7 +16,7 @@ import { throwIfNotAllowed } from 'models/user';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { recordMetric } from '@/lib/metrics';
 import { extractEmailDomain, isEmailAllowed } from '@/lib/email/utils';
-import { Invitation, Role } from '@prisma/client';
+import type { Invitation, Role } from '@/types/db';
 import { countTeamMembers } from 'models/teamMember';
 import {
   acceptInvitationSchema,
@@ -92,48 +92,10 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
 
     /*
     Aggregate  (cost=12.61..12.62 rows=1 width=8) (actual time=0.040..0.040 rows=1 loops=1)
-  ->  Nested Loop  (cost=0.42..12.60 rows=1 width=32) (actual time=0.037..0.038 rows=1 loops=1)
-        ->  Index Scan using "User_email_key" on "User" j1  (cost=0.14..8.16 rows=1 width=37) (actual time=0.025..0.026 rows=1 loops=1)
-              Index Cond: (email = 'admin@example.com'::text)
-              Filter: (id IS NOT NULL)
-        ->  Index Only Scan using "TeamMember_teamId_userId_key" on "TeamMember"  (cost=0.28..4.30 rows=1 width=37) (actual time=0.010..0.010 rows=1 loops=1)
-              Index Cond: (("teamId" = '386a5102-0427-403a-b6c1-877de86d1ce0'::text) AND ("userId" = j1.id))
-              Heap Fetches: 0
-Planning Time: 1.472 ms
-Execution Time: 0.065 ms
     */
-
-    /*
-SELECT COUNT(*) FROM (
-    SELECT 
-        "public"."TeamMember"."id" 
-    FROM "public"."TeamMember" LEFT JOIN "public"."User" AS "j1" ON ("j1"."id") = ("public"."TeamMember"."userId") 
-    WHERE ("public"."TeamMember"."teamId" = '7974330a-c8ca-4043-9e3c-3f326d1b6973' AND ("j1"."email" = 'admin@example.com' AND ("j1"."id" IS NOT NULL))) 
-    OFFSET 0
-) AS "sub"
-*/
-
-    /*
-Aggregate  (cost=2.05..2.06 rows=1 width=8) (actual time=0.046..0.047 rows=1 loops=1)
-  ->  Nested Loop  (cost=0.00..2.04 rows=1 width=32) (actual time=0.046..0.046 rows=0 loops=1)
-        Join Filter: ("TeamMember"."userId" = j1.id)
-        Rows Removed by Join Filter: 1
-        ->  Seq Scan on "TeamMember"  (cost=0.00..1.01 rows=1 width=37) (actual time=0.028..0.028 rows=1 loops=1)
-              Filter: ("teamId" = '7974330a-c8ca-4043-9e3c-3f326d1b6973'::text)
-              Rows Removed by Filter: 4
-        ->  Seq Scan on "User" j1  (cost=0.00..1.01 rows=1 width=37) (actual time=0.011..0.011 rows=1 loops=1)
-              Filter: ((id IS NOT NULL) AND (email = 'admin@example.com'::text))
-              Rows Removed by Filter: 2
-Planning Time: 1.285 ms
-Execution Time: 0.152 ms
-*/
     const memberExists = await countTeamMembers({
-      where: {
-        teamId: teamMember.teamId,
-        user: {
-          email,
-        },
-      },
+      teamId: teamMember.team_id,
+      email,
     });
 
     if (memberExists) {
@@ -141,10 +103,8 @@ Execution Time: 0.152 ms
     }
 
     const invitationExists = await getInvitationCount({
-      where: {
-        email,
-        teamId: teamMember.teamId,
-      },
+      teamId: teamMember.team_id,
+      email,
     });
 
     if (invitationExists) {
@@ -152,8 +112,8 @@ Execution Time: 0.152 ms
     }
 
     invitation = await createInvitation({
-      teamId: teamMember.teamId,
-      invitedBy: teamMember.userId,
+      teamId: teamMember.team_id,
+      invitedBy: teamMember.user_id,
       email,
       role,
       sentViaEmail: true,
@@ -164,8 +124,8 @@ Execution Time: 0.152 ms
   // Invite via link
   if (!sentViaEmail) {
     invitation = await createInvitation({
-      teamId: teamMember.teamId,
-      invitedBy: teamMember.userId,
+      teamId: teamMember.team_id,
+      invitedBy: teamMember.user_id,
       role,
       email: null,
       sentViaEmail: false,
@@ -179,11 +139,11 @@ Execution Time: 0.152 ms
     throw new ApiError(400, 'Could not create invitation. Please try again.');
   }
 
-  if (invitation.sentViaEmail) {
+  if (invitation.sent_via_email) {
     await sendTeamInviteEmail(teamMember.team, invitation);
   }
 
-  await sendEvent(teamMember.teamId, 'invitation.created', invitation);
+  await sendEvent(teamMember.team_id, 'invitation.created', invitation);
 
   sendAudit({
     action: 'member.invitation.create',
@@ -208,7 +168,7 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
   );
 
   const invitations = await getInvitations(
-    teamMember.teamId,
+    teamMember.team_id,
     sentViaEmail === 'true'
   );
 
@@ -230,8 +190,8 @@ const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
   const invitation = await getInvitation({ id });
 
   if (
-    invitation.invitedBy != teamMember.user.id ||
-    invitation.team.id != teamMember.teamId
+    invitation.invited_by != teamMember.user.id ||
+    invitation.team.id != teamMember.team_id
   ) {
     throw new ApiError(
       400,
@@ -248,7 +208,7 @@ const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
     team: teamMember.team,
   });
 
-  await sendEvent(teamMember.teamId, 'invitation.removed', invitation);
+  await sendEvent(teamMember.team_id, 'invitation.removed', invitation);
 
   recordMetric('invitation.removed');
 
@@ -272,7 +232,7 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
   const email = session?.user.email as string;
 
   // Make sure the user is logged in with the invited email address (Join via email)
-  if (invitation.sentViaEmail && invitation.email !== email) {
+  if (invitation.sent_via_email && invitation.email !== email) {
     throw new ApiError(
       400,
       'You must be logged in with the email address you were invited with.'
@@ -280,9 +240,9 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   // Make sure the user is logged in with an allowed domain (Join via link)
-  if (!invitation.sentViaEmail && invitation.allowedDomains.length) {
+  if (!invitation.sent_via_email && invitation.allowed_domains.length) {
     const emailDomain = extractEmailDomain(email);
-    const allowJoin = invitation.allowedDomains.find(
+    const allowJoin = invitation.allowed_domains.find(
       (domain) => domain === emailDomain
     );
 
@@ -302,7 +262,7 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
 
   await sendEvent(invitation.team.id, 'member.created', teamMember);
 
-  if (invitation.sentViaEmail) {
+  if (invitation.sent_via_email) {
     await deleteInvitation({ token: inviteToken });
   }
 

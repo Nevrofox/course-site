@@ -8,7 +8,6 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { UpdateAccount } from '@/components/account';
-import env from '@/lib/env';
 
 type AccountProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 
@@ -41,7 +40,7 @@ export const getServerSideProps = async (
         name: user.name,
         image: user.image,
       },
-      allowEmailChange: env.confirmEmail === false,
+      allowEmailChange: true,
     },
   };
 };

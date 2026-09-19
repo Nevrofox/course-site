@@ -9,7 +9,7 @@ import { useTranslation } from 'next-i18next';
 import type { ApiResponse } from 'types';
 import { defaultHeaders, maxLengthPolicies } from '@/lib/common';
 import { availableRoles } from '@/lib/permissions';
-import type { Team } from '@prisma/client';
+import type { Team } from '@/types/db';
 
 interface InviteViaEmailProps {
   team: Team;

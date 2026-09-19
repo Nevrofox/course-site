@@ -1,5 +1,5 @@
 import fetcher from '@/lib/fetcher';
-import type { Team } from '@prisma/client';
+import type { Team } from '@/types/db';
 import { useRouter } from 'next/router';
 import useSWR from 'swr';
 import type { ApiResponse } from 'types';

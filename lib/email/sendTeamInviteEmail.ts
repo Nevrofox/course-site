@@ -1,4 +1,4 @@
-import { Invitation, Team } from '@prisma/client';
+import { Invitation, Team } from '@/types/db';
 import { sendEmail } from './sendEmail';
 import { TeamInviteEmail } from '@/components/emailTemplates';
 import { render } from '@react-email/components';

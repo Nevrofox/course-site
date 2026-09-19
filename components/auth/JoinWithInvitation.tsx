@@ -4,28 +4,22 @@ import {
   Loading,
   WithLoadingAndError,
 } from '@/components/shared';
-import {
-  defaultHeaders,
-  maxLengthPolicies,
-  passwordPolicies,
-} from '@/lib/common';
+import { maxLengthPolicies, passwordPolicies } from '@/lib/common';
 import { useFormik } from 'formik';
 import useInvitation from 'hooks/useInvitation';
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { Button } from 'react-daisyui';
 import toast from 'react-hot-toast';
-import type { ApiResponse } from 'types';
 import * as Yup from 'yup';
 import TogglePasswordVisibility from '../shared/TogglePasswordVisibility';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import AgreeMessage from './AgreeMessage';
-import GoogleReCAPTCHA from '../shared/GoogleReCAPTCHA';
-import ReCAPTCHA from 'react-google-recaptcha';
+import { createClient } from '@/lib/supabase/client';
+import env from '@/lib/env';
 
 interface JoinWithInvitationProps {
   inviteToken: string;
-  recaptchaSiteKey: string | null;
 }
 
 const JoinUserSchema = Yup.object().shape({
@@ -43,16 +37,11 @@ const JoinUserSchema = Yup.object().shape({
     }),
 });
 
-const JoinWithInvitation = ({
-  inviteToken,
-  recaptchaSiteKey,
-}: JoinWithInvitationProps) => {
+const JoinWithInvitation = ({ inviteToken }: JoinWithInvitationProps) => {
   const router = useRouter();
   const { t } = useTranslation('common');
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const { isLoading, error, invitation } = useInvitation();
-  const [recaptchaToken, setRecaptchaToken] = useState<string>('');
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const handlePasswordVisibility = () => {
     setIsPasswordVisible((prev) => !prev);
@@ -63,29 +52,27 @@ const JoinWithInvitation = ({
       name: '',
       email: '',
       password: '',
-      sentViaEmail: invitation?.sentViaEmail || true,
+      sentViaEmail: invitation?.sent_via_email ?? true,
     },
     validationSchema: JoinUserSchema,
     enableReinitialize: true,
     validateOnChange: false,
     validateOnBlur: false,
     onSubmit: async (values) => {
-      const response = await fetch('/api/auth/join', {
-        method: 'POST',
-        headers: defaultHeaders,
-        body: JSON.stringify({
-          ...values,
-          recaptchaToken,
-          inviteToken,
-        }),
+      const supabase = createClient();
+      const email = values.sentViaEmail ? (invitation?.email as string) : values.email;
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password: values.password,
+        options: {
+          data: { name: values.name },
+          emailRedirectTo: `${env.appUrl}/invitations/${inviteToken}`,
+        },
       });
 
-      const json = (await response.json()) as ApiResponse;
-
-      recaptchaRef.current?.reset();
-
-      if (!response.ok) {
-        toast.error(json.error.message);
+      if (error) {
+        toast.error(error.message);
         return;
       }
 
@@ -116,7 +103,7 @@ const JoinWithInvitation = ({
           onChange={formik.handleChange}
         />
 
-        {invitation.sentViaEmail ? (
+        {invitation.sent_via_email ? (
           <InputWithLabel
             type="email"
             label={t('email')}
@@ -150,11 +137,6 @@ const JoinWithInvitation = ({
             handlePasswordVisibility={handlePasswordVisibility}
           />
         </div>
-        <GoogleReCAPTCHA
-          recaptchaRef={recaptchaRef}
-          onChange={setRecaptchaToken}
-          siteKey={recaptchaSiteKey}
-        />
         <div className="space-y-3">
           <Button
             type="submit"
