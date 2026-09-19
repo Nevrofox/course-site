@@ -22,6 +22,7 @@ jobs:
       APP_URL: http://localhost:4002
       HIDE_LANDING_PAGE: false
       DISABLE_NON_BUSINESS_EMAIL_SIGNUP: false
+      NEXT_PUBLIC_DARK_MODE: false
       FEATURE_TEAM_AUDIT_LOG: true
       FEATURE_TEAM_WEBHOOK: false
       FEATURE_TEAM_DELETION: true

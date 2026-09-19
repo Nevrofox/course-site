@@ -48,9 +48,11 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
     };
   }, [router.events]);
 
-  if (env.darkModeEnabled) {
-    applyTheme(localStorage.getItem('theme') as Theme);
-  }
+  useEffect(() => {
+    if (env.darkModeEnabled) {
+      applyTheme(localStorage.getItem('theme') as Theme);
+    }
+  }, []);
 
   const getLayout =
     Component.getLayout || ((page) => <AccountLayout>{page}</AccountLayout>);
