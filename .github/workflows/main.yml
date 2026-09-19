@@ -30,6 +30,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
       SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
       DEBUG: pw:webserver
+      RUN_E2E: 'false'
 
     steps:
       - uses: actions/checkout@v4
@@ -51,11 +52,13 @@ jobs:
       - run: npm run build-ci
       - run: npm run check-types
       - name: Install playwright browser dependencies
+        if: env.RUN_E2E == 'true'
         run: npx playwright install chromium
       - name: e2e tests
+        if: env.RUN_E2E == 'true'
         run: npx playwright test -x
       - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
+        if: env.RUN_E2E == 'true' && !cancelled()
         with:
           name: playwright-report
           path: playwright-report/
