@@ -14,6 +14,7 @@ import { Theme, applyTheme } from '@/lib/theme';
 import { Themer } from '@boxyhq/react-ui/shared';
 import { AccountLayout } from '@/components/layouts';
 import { useRouter } from 'next/router';
+import { Analytics } from '@vercel/analytics/next';
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const router = useRouter();
@@ -65,6 +66,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       </Head>
 
       <Toaster toastOptions={{ duration: 4000 }} />
+      <Analytics />
       <Themer
         overrideTheme={{
           '--primary-color': colors.blue['500'],
