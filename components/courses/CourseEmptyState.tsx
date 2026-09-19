@@ -1,10 +1,12 @@
 // components/courses/CourseEmptyState.tsx
 
-import { AcademicCapIcon } from '@heroicons/react/24/outline';
+import { AcademicCapIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 interface Props {
   isGenerating: boolean;
+  createCourseHref: string;
 }
 
 const loadingMessages = [
@@ -15,7 +17,7 @@ const loadingMessages = [
   'Snart klart...',
 ];
 
-const CourseEmptyState = ({ isGenerating }: Props) => {
+const CourseEmptyState = ({ isGenerating, createCourseHref }: Props) => {
   const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
@@ -39,6 +41,22 @@ const CourseEmptyState = ({ isGenerating }: Props) => {
           ? 'Genererer ditt personlige kurs…'
           : 'Ingen kurs tilgjengelig'}
       </h2>
+
+      {!isGenerating && (
+        <>
+          <p className="mt-2 max-w-md text-sm text-gray-600">
+            Opprett et skreddersydd AI-kurs basert på rollen, verktøyene og
+            målene dine.
+          </p>
+          <Link
+            href={createCourseHref}
+            className="btn btn-primary btn-md mt-6 gap-2"
+          >
+            <SparklesIcon className="h-5 w-5" />
+            Opprett kurs
+          </Link>
+        </>
+      )}
 
       {isGenerating && (
         <>
