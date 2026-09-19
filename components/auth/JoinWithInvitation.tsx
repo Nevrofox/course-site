@@ -60,7 +60,9 @@ const JoinWithInvitation = ({ inviteToken }: JoinWithInvitationProps) => {
     validateOnBlur: false,
     onSubmit: async (values) => {
       const supabase = createClient();
-      const email = values.sentViaEmail ? (invitation?.email as string) : values.email;
+      const email = values.sentViaEmail
+        ? (invitation?.email as string)
+        : values.email;
 
       const { error } = await supabase.auth.signUp({
         email,

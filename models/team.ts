@@ -55,7 +55,9 @@ export const deleteTeam = async (key: { id: string } | { slug: string }) => {
   const query = supabase.from('team').delete();
 
   const { error } =
-    'id' in key ? await query.eq('id', key.id) : await query.eq('slug', key.slug);
+    'id' in key
+      ? await query.eq('id', key.id)
+      : await query.eq('slug', key.slug);
 
   if (error) {
     throw new ApiError(500, error.message);
@@ -290,4 +292,3 @@ export const getCurrentUserWithTeam = async (
     team,
   };
 };
-

@@ -10,7 +10,6 @@ import Link from 'next/link';
 import { TeamFeature } from 'types';
 import { useTranslation } from 'next-i18next';
 
-
 interface TeamTabProps {
   activeTab: string;
   team: Team;
@@ -22,7 +21,6 @@ const TeamTab = ({ activeTab, team, heading, teamFeatures }: TeamTabProps) => {
   const { canAccess } = useCanAccess();
 
   const { t } = useTranslation('common');
-
 
   const navigations = [
     {

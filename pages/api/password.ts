@@ -36,10 +36,9 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const supabase = createAdminClient();
 
-  const { error } = await supabase.auth.admin.updateUserById(
-    session!.user.id,
-    { password: newPassword }
-  );
+  const { error } = await supabase.auth.admin.updateUserById(session!.user.id, {
+    password: newPassword,
+  });
 
   if (error) {
     throw new Error(error.message);

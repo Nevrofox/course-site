@@ -32,7 +32,9 @@ export const getInvitation = async (
   key: { token: string } | { id: string }
 ) => {
   const supabase = createAdminClient();
-  const query = supabase.from('invitation').select('*, team:team_id(id, name, slug)');
+  const query = supabase
+    .from('invitation')
+    .select('*, team:team_id(id, name, slug)');
 
   const { data, error } =
     'token' in key

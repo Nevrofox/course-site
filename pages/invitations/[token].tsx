@@ -42,7 +42,9 @@ const AcceptTeamInvitation: NextPageWithLayout = () => {
     ? invitation.allowed_domains.includes(emailDomain!)
     : true;
 
-  const acceptInvite = invitation.sent_via_email ? emailMatch : emailDomainMatch;
+  const acceptInvite = invitation.sent_via_email
+    ? emailMatch
+    : emailDomainMatch;
 
   return (
     <>

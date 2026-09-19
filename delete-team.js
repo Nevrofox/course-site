@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 const readline = require('readline');
 const { Svix } = require('svix');
 const { createClient } = require('@supabase/supabase-js');

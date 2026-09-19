@@ -45,7 +45,9 @@ async function seedUsers() {
       .map(() => createRandomUser())
   );
 
-  const users = [admin, user, ...rest].filter((u): u is NonNullable<typeof u> => !!u);
+  const users = [admin, user, ...rest].filter(
+    (u): u is NonNullable<typeof u> => !!u
+  );
   console.log('Seeded users', users.length);
   return users;
 }
@@ -87,7 +89,8 @@ async function seedTeamMembers(
   users: { id: string; email?: string }[],
   teams: { id: string }[]
 ) {
-  const rows: { team_id: string; user_id: string; role: 'OWNER' | 'MEMBER' }[] = [];
+  const rows: { team_id: string; user_id: string; role: 'OWNER' | 'MEMBER' }[] =
+    [];
   const roles = ['OWNER', 'MEMBER'] as const;
 
   for (const user of users) {

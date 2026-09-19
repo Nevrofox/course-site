@@ -76,9 +76,16 @@ const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
 
   await validateMembershipOperation(memberId, teamMember);
 
-  const teamMemberRemoved = await removeTeamMember(teamMember.team_id, memberId);
+  const teamMemberRemoved = await removeTeamMember(
+    teamMember.team_id,
+    memberId
+  );
 
-  await sendEvent(teamMember.team_id, 'member.removed', teamMemberRemoved ?? {});
+  await sendEvent(
+    teamMember.team_id,
+    'member.removed',
+    teamMemberRemoved ?? {}
+  );
 
   sendAudit({
     action: 'member.remove',

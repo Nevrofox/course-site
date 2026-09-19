@@ -20,31 +20,31 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const { ...props } = pageProps;
 
   useEffect(() => {
-    console.log("ENV TOKEN:", env.mixpanel.token);
-    console.log("RAW ENV:", process.env.NEXT_PUBLIC_MIXPANEL_TOKEN);
+    console.log('ENV TOKEN:', env.mixpanel.token);
+    console.log('RAW ENV:', process.env.NEXT_PUBLIC_MIXPANEL_TOKEN);
     // Initialize Mixpanel once
     if (env.mixpanel.token) {
       mixpanel.init(env.mixpanel.token, {
-      debug: true,
-      ignore_dnt: true,
-      track_pageview: true,
-      api_host: "https://api-eu.mixpanel.com",
-    });
+        debug: true,
+        ignore_dnt: true,
+        track_pageview: true,
+        api_host: 'https://api-eu.mixpanel.com',
+      });
 
-      mixpanel.track("app_loaded");
+      mixpanel.track('app_loaded');
     }
 
     // Track route changes
     const handleRouteChange = (url: string) => {
       if (env.mixpanel.token) {
-        mixpanel.track("page_view", { path: url });
+        mixpanel.track('page_view', { path: url });
       }
     };
 
-    router.events.on("routeChangeComplete", handleRouteChange);
+    router.events.on('routeChangeComplete', handleRouteChange);
 
     return () => {
-      router.events.off("routeChangeComplete", handleRouteChange);
+      router.events.off('routeChangeComplete', handleRouteChange);
     };
   }, [router.events]);
 
