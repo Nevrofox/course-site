@@ -28,7 +28,7 @@ export class JoinPage {
   }
 
   async goto() {
-    await this.page.goto('/auth/join');
+    await this.page.goto('/en/auth/join');
     await expect(
       this.page.getByRole('heading', { name: 'Get started' })
     ).toBeVisible();

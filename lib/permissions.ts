@@ -1,20 +1,15 @@
-import { Role } from '@prisma/client';
+import type { Role } from '@/types/db';
 
-type RoleType = (typeof Role)[keyof typeof Role];
 export type Action = 'create' | 'update' | 'read' | 'delete' | 'leave';
 export type Resource =
   | 'team'
   | 'team_member'
   | 'team_invitation'
-  | 'team_sso'
-  | 'team_dsync'
   | 'team_audit_log'
-  | 'team_webhook'
-  | 'team_payments'
-  | 'team_api_key';
+  | 'team_webhook';
 
 type RolePermissions = {
-  [role in RoleType]: Permission[];
+  [role in Role]: Permission[];
 };
 
 export type Permission = {
@@ -22,19 +17,10 @@ export type Permission = {
   actions: Action[] | '*';
 };
 
-export const availableRoles = [
-  {
-    id: Role.MEMBER,
-    name: 'Member',
-  },
-  {
-    id: Role.ADMIN,
-    name: 'Admin',
-  },
-  {
-    id: Role.OWNER,
-    name: 'Owner',
-  },
+export const availableRoles: { id: Role; name: string }[] = [
+  { id: 'MEMBER', name: 'Member' },
+  { id: 'ADMIN', name: 'Admin' },
+  { id: 'OWNER', name: 'Owner' },
 ];
 
 export const permissions: RolePermissions = {
@@ -52,27 +38,11 @@ export const permissions: RolePermissions = {
       actions: '*',
     },
     {
-      resource: 'team_sso',
-      actions: '*',
-    },
-    {
-      resource: 'team_dsync',
-      actions: '*',
-    },
-    {
       resource: 'team_audit_log',
       actions: '*',
     },
     {
-      resource: 'team_payments',
-      actions: '*',
-    },
-    {
       resource: 'team_webhook',
-      actions: '*',
-    },
-    {
-      resource: 'team_api_key',
       actions: '*',
     },
   ],
@@ -90,23 +60,11 @@ export const permissions: RolePermissions = {
       actions: '*',
     },
     {
-      resource: 'team_sso',
-      actions: '*',
-    },
-    {
-      resource: 'team_dsync',
-      actions: '*',
-    },
-    {
       resource: 'team_audit_log',
       actions: '*',
     },
     {
       resource: 'team_webhook',
-      actions: '*',
-    },
-    {
-      resource: 'team_api_key',
       actions: '*',
     },
   ],

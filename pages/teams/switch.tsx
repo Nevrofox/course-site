@@ -6,7 +6,6 @@ import type {
   GetServerSidePropsContext,
   InferGetServerSidePropsType,
 } from 'next';
-import { useSession } from 'next-auth/react';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
@@ -19,11 +18,6 @@ const Organizations: NextPageWithLayout<
 > = ({ teams }) => {
   const router = useRouter();
   const { t } = useTranslation('common');
-  const { status } = useSession();
-
-  if (status === 'unauthenticated') {
-    router.push('/auth/login');
-  }
 
   useEffect(() => {
     if (teams === null) {
@@ -55,9 +49,18 @@ export const getServerSideProps = async (
 
   const session = await getSession(req, res);
 
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/auth/login',
+        permanent: false,
+      },
+    };
+  }
+
   deleteCookie('pending-invite', { req, res });
 
-  const teams = await getTeams(session?.user.id as string);
+  const teams = await getTeams(session.user.id);
 
   return {
     props: {

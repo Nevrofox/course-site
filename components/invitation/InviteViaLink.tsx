@@ -9,7 +9,7 @@ import { useTranslation } from 'next-i18next';
 import type { ApiResponse } from 'types';
 import useInvitations from 'hooks/useInvitations';
 import { availableRoles } from '@/lib/permissions';
-import type { Team } from '@prisma/client';
+import type { Team } from '@/types/db';
 import { defaultHeaders, isValidDomain, maxLengthPolicies } from '@/lib/common';
 import { InputWithCopyButton } from '../shared';
 import ConfirmationDialog from '../shared/ConfirmationDialog';
@@ -105,8 +105,8 @@ const InviteViaLink = ({ team }: InviteViaLinkProps) => {
           className="text-sm w-full"
         />
         <p className="text-sm text-slate-500 my-2">
-          {invitation.allowedDomains.length > 0
-            ? `Anyone with an email address ending with ${invitation.allowedDomains} can use this link to join your team.`
+          {invitation.allowed_domains.length > 0
+            ? `Anyone with an email address ending with ${invitation.allowed_domains} can use this link to join your team.`
             : 'Anyone can use this link to join your team.'}
           <Button
             className="btn btn-xs btn-link link-error"

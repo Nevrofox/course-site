@@ -1,7 +1,7 @@
 import { Button } from 'react-daisyui';
 import { useTranslation } from 'next-i18next';
 
-import { Invitation } from '@prisma/client';
+import { Invitation } from '@/types/db';
 import { useCustomSignOut } from 'hooks/useCustomSignout';
 
 interface EmailDomainMismatchProps {
@@ -14,7 +14,7 @@ const EmailDomainMismatch = ({
   emailDomain,
 }: EmailDomainMismatchProps) => {
   const { t } = useTranslation('common');
-  const { allowedDomains } = invitation;
+  const { allowed_domains: allowedDomains } = invitation;
   const signOut = useCustomSignOut();
 
   const allowedDomainsString =

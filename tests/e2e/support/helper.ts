@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const user = {
   name: 'Jackson',
@@ -17,9 +17,15 @@ export const secondTeam = {
 } as const;
 
 export async function cleanup() {
-  await prisma.teamMember.deleteMany();
-  await prisma.team.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.$disconnect();
+  const supabase = createAdminClient();
+
+  const { data: users } = await supabase.auth.admin.listUsers();
+  const testUser = users?.users.find((u) => u.email === user.email);
+
+  await supabase.from('team_member').delete().neq('id', '');
+  await supabase.from('team').delete().neq('id', '');
+
+  if (testUser) {
+    await supabase.auth.admin.deleteUser(testUser.id);
+  }
 }

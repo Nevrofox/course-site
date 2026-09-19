@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowUpCircleIcon } from '@heroicons/react/24/outline';
 
 import type { ApiResponse } from 'types';
-import type { User } from '@prisma/client';
+import type { User } from '@/types/db';
 import { Card } from '@/components/shared';
 import { defaultHeaders } from '@/lib/common';
 

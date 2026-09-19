@@ -1,17 +1,14 @@
 import {
   Cog6ToothIcon,
-  KeyIcon,
   PaperAirplaneIcon,
   UserPlusIcon,
-  BanknotesIcon,
 } from '@heroicons/react/24/outline';
-import type { Team } from '@prisma/client';
+import type { Team } from '@/types/db';
 import classNames from 'classnames';
 import useCanAccess from 'hooks/useCanAccess';
 import Link from 'next/link';
 import { TeamFeature } from 'types';
 import { useTranslation } from 'next-i18next';
-
 
 interface TeamTabProps {
   activeTab: string;
@@ -24,7 +21,6 @@ const TeamTab = ({ activeTab, team, heading, teamFeatures }: TeamTabProps) => {
   const { canAccess } = useCanAccess();
 
   const { t } = useTranslation('common');
-
 
   const navigations = [
     {
@@ -45,18 +41,6 @@ const TeamTab = ({ activeTab, team, heading, teamFeatures }: TeamTabProps) => {
   }
 
   if (
-    teamFeatures.payments &&
-    canAccess('team_payments', ['create', 'update', 'read', 'delete'])
-  ) {
-    navigations.push({
-      name: t('billing'),
-      href: `/teams/${team.slug}/billing`,
-      active: activeTab === 'payments',
-      icon: BanknotesIcon,
-    });
-  }
-
-  if (
     teamFeatures.webhook &&
     canAccess('team_webhook', ['create', 'update', 'read', 'delete'])
   ) {
@@ -65,18 +49,6 @@ const TeamTab = ({ activeTab, team, heading, teamFeatures }: TeamTabProps) => {
       href: `/teams/${team.slug}/webhooks`,
       active: activeTab === 'webhooks',
       icon: PaperAirplaneIcon,
-    });
-  }
-
-  if (
-    teamFeatures.apiKey &&
-    canAccess('team_api_key', ['create', 'update', 'read', 'delete'])
-  ) {
-    navigations.push({
-      name: 'API Keys',
-      href: `/teams/${team.slug}/api-keys`,
-      active: activeTab === 'api-keys',
-      icon: KeyIcon,
     });
   }
 

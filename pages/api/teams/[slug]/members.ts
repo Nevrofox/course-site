@@ -1,7 +1,7 @@
 import { ApiError } from '@/lib/errors';
 import { sendAudit } from '@/lib/retraced';
 import { sendEvent } from '@/lib/svix';
-import { Role } from '@prisma/client';
+import type { Role } from '@/types/db';
 import {
   getTeamMembers,
   removeTeamMember,
@@ -76,9 +76,16 @@ const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
 
   await validateMembershipOperation(memberId, teamMember);
 
-  const teamMemberRemoved = await removeTeamMember(teamMember.teamId, memberId);
+  const teamMemberRemoved = await removeTeamMember(
+    teamMember.team_id,
+    memberId
+  );
 
-  await sendEvent(teamMember.teamId, 'member.removed', teamMemberRemoved);
+  await sendEvent(
+    teamMember.team_id,
+    'member.removed',
+    teamMemberRemoved ?? {}
+  );
 
   sendAudit({
     action: 'member.remove',
@@ -97,49 +104,16 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
   const teamMember = await throwIfNoTeamAccess(req, res);
   throwIfNotAllowed(teamMember, 'team', 'leave');
 
-  /*
-  Aggregate  (cost=64.62..64.63 rows=1 width=8) (actual time=0.222..0.223 rows=1 loops=1)
-  ->  Bitmap Heap Scan on "TeamMember"  (cost=4.72..64.24 rows=30 width=32) (actual time=0.054..0.218 rows=32 loops=1)
-        Recheck Cond: ("teamId" = '386a5102-0427-403a-b6c1-877de86d1ce0'::text)
-        Filter: (role = ('OWNER'::cstring)::"Role")
-        Rows Removed by Filter: 26
-        Heap Blocks: exact=47
-        ->  Bitmap Index Scan on "TeamMember_teamId_userId_key"  (cost=0.00..4.71 rows=58 width=0) (actual time=0.039..0.039 rows=58 loops=1)
-              Index Cond: ("teamId" = '386a5102-0427-403a-b6c1-877de86d1ce0'::text)
-Planning Time: 0.554 ms
-Execution Time: 0.252 ms
-  */
-
-  /*
-  SELECT COUNT(*) FROM 
-    (
-        SELECT "public"."TeamMember"."id" FROM "public"."TeamMember" WHERE (
-            "public"."TeamMember"."role" = CAST('OWNER'::text AS "public"."Role") AND "public"."TeamMember"."teamId" = '7974330a-c8ca-4043-9e3c-3f326d1b6973'
-        ) OFFSET 0
-    ) AS "sub"
-  */
-
-  /*
-Aggregate  (cost=1.03..1.04 rows=1 width=8) (actual time=0.028..0.028 rows=1 loops=1)
-  ->  Seq Scan on "TeamMember"  (cost=0.00..1.02 rows=1 width=32) (actual time=0.025..0.026 rows=1 loops=1)
-        Filter: (("teamId" = '7974330a-c8ca-4043-9e3c-3f326d1b6973'::text) AND (role = ('OWNER'::cstring)::"Role"))
-        Rows Removed by Filter: 4
-Planning Time: 0.625 ms
-Execution Time: 0.057 ms
-*/
-
   const totalTeamOwners = await countTeamMembers({
-    where: {
-      role: Role.OWNER,
-      teamId: teamMember.teamId,
-    },
+    role: 'OWNER',
+    teamId: teamMember.team_id,
   });
 
   if (totalTeamOwners <= 1) {
     throw new ApiError(400, 'A team should have at least one owner.');
   }
 
-  await removeTeamMember(teamMember.teamId, teamMember.user.id);
+  await removeTeamMember(teamMember.team_id, teamMember.user.id);
 
   recordMetric('member.left');
 
@@ -160,16 +134,8 @@ const handlePATCH = async (req: NextApiRequest, res: NextApiResponse) => {
     role,
   });
 
-  const memberUpdated = await updateTeamMember({
-    where: {
-      teamId_userId: {
-        teamId: teamMember.teamId,
-        userId: memberId,
-      },
-    },
-    data: {
-      role,
-    },
+  const memberUpdated = await updateTeamMember(teamMember.team_id, memberId, {
+    role,
   });
 
   sendAudit({

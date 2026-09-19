@@ -1,5 +1,5 @@
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
-import ReactMarkdown from "react-markdown";
+import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import ReactMarkdown from 'react-markdown';
 
 interface Props {
   topic: any;
@@ -35,35 +35,30 @@ export default function TopicContent({
 
       {/* HEADER */}
       <div>
-        <h3 className="text-2xl font-semibold text-gray-900">
-          {topic.title}
-        </h3>
+        <h3 className="text-2xl font-semibold text-gray-900">{topic.title}</h3>
       </div>
 
       {/* BODY – NÅ MED MARKDOWN */}
       {topic.bodyText && (
         <div className="prose max-w-none text-gray-700">
-          <ReactMarkdown>
-            {topic.bodyText}
-          </ReactMarkdown>
+          <ReactMarkdown>{topic.bodyText}</ReactMarkdown>
         </div>
       )}
 
       {/* KEY TAKEAWAYS */}
-      {Array.isArray(topic.keyTakeaways) &&
-        topic.keyTakeaways.length > 0 && (
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <h4 className="text-md font-semibold text-gray-900 mb-2">
-              Viktige poenger
-            </h4>
+      {Array.isArray(topic.keyTakeaways) && topic.keyTakeaways.length > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <h4 className="text-md font-semibold text-gray-900 mb-2">
+            Viktige poenger
+          </h4>
 
-            <ul className="list-disc pl-5 text-gray-700 space-y-1">
-              {topic.keyTakeaways.map((k: string, i: number) => (
-                <li key={i}>{k}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+          <ul className="list-disc pl-5 text-gray-700 space-y-1">
+            {topic.keyTakeaways.map((k: string, i: number) => (
+              <li key={i}>{k}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* BRIDGE */}
       {topic.nextBridge && (

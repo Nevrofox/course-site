@@ -1,13 +1,14 @@
 import { ApiError } from '@/lib/errors';
 import { Action, Resource, permissions } from '@/lib/permissions';
-import { prisma } from '@/lib/prisma';
-import { Role, TeamMember } from '@prisma/client';
-import type { Session } from 'next-auth';
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from '@/lib/session';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getSession, type Session } from '@/lib/session';
 import { maxLengthPolicies } from '@/lib/common';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import type { Role, TeamMember, User } from '@/types/db';
 
-export const normalizeUser = (user) => {
+export const normalizeUser = <T extends { name?: string | null }>(
+  user: T
+): T => {
   if (user?.name) {
     user.name = user.name.substring(0, maxLengthPolicies.name);
   }
@@ -15,50 +16,47 @@ export const normalizeUser = (user) => {
   return user;
 };
 
-export const createUser = async (data: {
-  name: string;
-  email: string;
-  password?: string;
-  emailVerified?: Date | null;
-}) => {
-  return await prisma.user.create({
-    data: normalizeUser(data),
-  });
-};
+// Update the user's profile (name/image live in public.user; email/password are
+// owned by Supabase Auth and updated separately via the admin client).
+export const updateUser = async (
+  userId: string,
+  data: Partial<Pick<User, 'name' | 'image'>>
+) => {
+  const supabase = createAdminClient();
 
-export const updateUser = async ({ where, data }) => {
-  data = normalizeUser(data);
+  const { data: user, error } = await supabase
+    .from('user')
+    .update(normalizeUser({ ...data }))
+    .eq('id', userId)
+    .select()
+    .single();
 
-  return await prisma.user.update({
-    where,
-    data,
-  });
-};
-
-export const upsertUser = async ({ where, update, create }) => {
-  update = normalizeUser(update);
-  create = normalizeUser(create);
-
-  return await prisma.user.upsert({
-    where,
-    update,
-    create,
-  });
-};
-
-export const getUser = async (key: { id: string } | { email: string }) => {
-  const user = await prisma.user.findUnique({
-    where: key,
-  });
+  if (error) {
+    throw new ApiError(500, error.message);
+  }
 
   return normalizeUser(user);
 };
 
-export const getUserBySession = async (session: Session | null) => {
-  if (session === null || session.user === null) {
-    return null;
+export const getUser = async (
+  key: { id: string } | { email: string }
+): Promise<User | null> => {
+  const supabase = createAdminClient();
+  let query = supabase.from('user').select('*');
+
+  query =
+    'id' in key ? query.eq('id', key.id) : query.ilike('email', key.email);
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    throw new ApiError(500, error.message);
   }
 
+  return data ? normalizeUser(data) : null;
+};
+
+export const getUserBySession = async (session: Session | null) => {
   const id = session?.user?.id;
 
   if (!id) {
@@ -66,20 +64,6 @@ export const getUserBySession = async (session: Session | null) => {
   }
 
   return await getUser({ id });
-};
-
-export const deleteUser = async (key: { id: string } | { email: string }) => {
-  return await prisma.user.delete({
-    where: key,
-  });
-};
-
-export const findFirstUserOrThrow = async ({ where }) => {
-  const user = await prisma.user.findFirstOrThrow({
-    where,
-  });
-
-  return normalizeUser(user);
 };
 
 const isAllowed = (role: Role, resource: Resource, action: Action) => {

@@ -1,9 +1,9 @@
 import micromatch from 'micromatch';
-import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import env from './lib/env';
+import { updateSession } from '@/lib/supabase/middleware';
 
 // Constants for security headers
 const SECURITY_HEADERS = {
@@ -60,16 +60,10 @@ const unAuthenticatedRoutes = [
   '/api/hello',
   '/api/health',
   '/api/auth/**',
-  '/api/oauth/**',
-  '/api/scim/v2.0/**',
   '/api/invitations/*',
-  '/api/webhooks/stripe',
-  '/api/webhooks/dsync',
   '/auth/**',
   '/invitations/*',
   '/terms-condition',
-  '/unlock-account',
-  '/login/saml',
   '/.well-known/*',
 ];
 
@@ -84,54 +78,25 @@ export default async function middleware(req: NextRequest) {
   const redirectUrl = new URL('/auth/login', req.url);
   redirectUrl.searchParams.set('callbackUrl', encodeURI(req.url));
 
-  // JWT strategy
-  if (env.nextAuth.sessionStrategy === 'jwt') {
-    const token = await getToken({
-      req,
-    });
+  const { supabaseResponse, user } = await updateSession(req);
 
-    if (!token) {
-      return NextResponse.redirect(redirectUrl);
-    }
+  if (!user) {
+    return NextResponse.redirect(redirectUrl);
   }
 
-  // Database strategy
-  else if (env.nextAuth.sessionStrategy === 'database') {
-    const url = new URL('/api/auth/session', req.url);
-
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        cookie: req.headers.get('cookie') || '',
-      },
-    });
-
-    const session = await response.json();
-
-    if (!session.user) {
-      return NextResponse.redirect(redirectUrl);
-    }
-  }
-
-  const requestHeaders = new Headers(req.headers);
   const csp = generateCSP();
 
-  requestHeaders.set('Content-Security-Policy', csp);
-
-  const response = NextResponse.next({
-    request: { headers: requestHeaders },
-  });
+  supabaseResponse.headers.set('Content-Security-Policy', csp);
 
   if (env.securityHeadersEnabled) {
     // Set security headers
-    response.headers.set('Content-Security-Policy', csp);
     Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
-      response.headers.set(key, value);
+      supabaseResponse.headers.set(key, value);
     });
   }
 
   // All good, let the request through
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {
@@ -139,4 +104,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.svg$|.*\\.webp$|api/auth/session).*)',
   ],
 };
-

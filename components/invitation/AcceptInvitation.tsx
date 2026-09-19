@@ -5,7 +5,7 @@ import { useTranslation } from 'next-i18next';
 
 import type { ApiResponse } from 'types';
 import { defaultHeaders } from '@/lib/common';
-import { Invitation, Team } from '@prisma/client';
+import { Invitation, Team } from '@/types/db';
 
 interface AcceptInvitationProps {
   invitation: Invitation & { team: Team };

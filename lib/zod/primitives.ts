@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { isValidDomain, maxLengthPolicies, passwordPolicies } from '../common';
-import { Role } from '@prisma/client';
 
 export const password = z
   .string({
@@ -106,13 +105,6 @@ export const domain = z
     return domain.trim().toLowerCase();
   });
 
-export const apiKeyId = z
-  .string({
-    required_error: 'API key is required',
-    invalid_type_error: 'API key must be a string',
-  })
-  .min(1, 'API key is required');
-
 export const token = z
   .string({
     required_error: 'Token is required',
@@ -120,7 +112,7 @@ export const token = z
   })
   .min(1, 'Token is required');
 
-export const role = z.nativeEnum(Role, {
+export const role = z.enum(['OWNER', 'ADMIN', 'MEMBER'], {
   required_error: 'Role is required',
   invalid_type_error: 'Role must be a string',
 });

@@ -1,23 +1,18 @@
 import { InputWithLabel } from '@/components/shared';
-import {
-  defaultHeaders,
-  maxLengthPolicies,
-  passwordPolicies,
-} from '@/lib/common';
+import { maxLengthPolicies, passwordPolicies } from '@/lib/common';
 import { useFormik } from 'formik';
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Button } from 'react-daisyui';
 import { toast } from 'react-hot-toast';
-import type { ApiResponse } from 'types';
 import * as Yup from 'yup';
+import { createClient } from '@/lib/supabase/client';
 
 const ResetPassword = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const router = useRouter();
   const { t } = useTranslation('common');
-  const { token } = router.query as { token: string };
 
   const formik = useFormik({
     initialValues: {
@@ -40,21 +35,15 @@ const ResetPassword = () => {
     onSubmit: async (values) => {
       setSubmitting(true);
 
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: defaultHeaders,
-        body: JSON.stringify({
-          ...values,
-          token,
-        }),
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({
+        password: values.password,
       });
-
-      const json = (await response.json()) as ApiResponse;
 
       setSubmitting(false);
 
-      if (!response.ok) {
-        toast.error(json.error.message);
+      if (error) {
+        toast.error(error.message);
         return;
       }
 

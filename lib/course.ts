@@ -21,20 +21,17 @@ export async function startCourseGeneration(
     throw new Error('NEXT_PUBLIC_API_BASE_URL is not set');
   }
 
-  const res = await fetch(
-    `${API_BASE_URL}/api/course/courses`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': userId,
-      },
-      body: JSON.stringify({
-        userId,
-        wizardAnswers,
-      }),
-    }
-  );
+  const res = await fetch(`${API_BASE_URL}/api/course/courses`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-user-id': userId,
+    },
+    body: JSON.stringify({
+      userId,
+      wizardAnswers,
+    }),
+  });
 
   if (!res.ok) {
     const text = await res.text();
@@ -44,13 +41,9 @@ export async function startCourseGeneration(
   return res.json();
 }
 
-
-export async function createCourse(
-  userId: string,
-  input: WizardAnswers
-) {
+export async function createCourse(userId: string, input: WizardAnswers) {
   if (!API_BASE_URL) {
-    throw new Error("NEXT_PUBLIC_API_BASE_URL is not set");
+    throw new Error('NEXT_PUBLIC_API_BASE_URL is not set');
   }
 
   const payload = {
@@ -59,11 +52,11 @@ export async function createCourse(
   };
 
   const res = await fetch(
-    `${API_BASE_URL}/api/course/courses`,   // 👈 RIKTIG ENDPOINT
+    `${API_BASE_URL}/api/course/courses`, // 👈 RIKTIG ENDPOINT
     {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
     }
@@ -79,27 +72,22 @@ export async function createCourse(
   }>;
 }
 
-
-
-
 export async function getCourse(userId: string, courseId: string) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/course/courses/${courseId}`,
     {
       headers: {
-        "x-user-id": userId,
+        'x-user-id': userId,
       },
     }
   );
 
   if (!res.ok) {
-    throw new Error("Failed to fetch course");
+    throw new Error('Failed to fetch course');
   }
 
   return res.json();
 }
-
-
 
 export async function getModule(
   userId: string,
@@ -110,14 +98,14 @@ export async function getModule(
     `${API_BASE_URL}/api/course/courses/${courseId}/modules/${moduleNumber}`,
     {
       headers: {
-        "Content-Type": "application/json",
-        "x-user-id": userId,
+        'Content-Type': 'application/json',
+        'x-user-id': userId,
       },
     }
   );
 
   if (!res.ok) {
-    throw new Error("Failed to fetch module");
+    throw new Error('Failed to fetch module');
   }
 
   return res.json();

@@ -4,3 +4,9 @@ node_modules
 .next
 out
 eslint.config.cjs
+types/supabase.ts
+supabase/.temp
+.vscode
+.agents/skills
+host.json
+local.settings.json

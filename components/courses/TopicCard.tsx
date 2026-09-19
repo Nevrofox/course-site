@@ -10,17 +10,21 @@ type Topic = {
 };
 
 function formatBadge(format?: string) {
-  const f = (format ?? "").toLowerCase();
+  const f = (format ?? '').toLowerCase();
 
-  if (f.includes("video")) return { label: "Video", icon: "🎥" };
-  if (f.includes("e-læring") || f.includes("elearning") || f.includes("e-learning"))
-    return { label: "E-læring", icon: "🧠" };
-  if (f.includes("workshop")) return { label: "Workshop", icon: "🧩" };
-  if (f.includes("oppgave")) return { label: "Oppgave", icon: "✅" };
-  if (f.includes("dokument") || f.includes("les"))
-    return { label: "Lesing", icon: "📄" };
+  if (f.includes('video')) return { label: 'Video', icon: '🎥' };
+  if (
+    f.includes('e-læring') ||
+    f.includes('elearning') ||
+    f.includes('e-learning')
+  )
+    return { label: 'E-læring', icon: '🧠' };
+  if (f.includes('workshop')) return { label: 'Workshop', icon: '🧩' };
+  if (f.includes('oppgave')) return { label: 'Oppgave', icon: '✅' };
+  if (f.includes('dokument') || f.includes('les'))
+    return { label: 'Lesing', icon: '📄' };
 
-  return { label: format || "Innhold", icon: "📌" };
+  return { label: format || 'Innhold', icon: '📌' };
 }
 
 interface Props {
@@ -40,17 +44,17 @@ export default function TopicCard({ topic, index, onClick, disabled }: Props) {
     <button
       type="button"
       onClick={() => {
-        console.log("🟢 TOPIC CLICKED", topic, index);
+        console.log('🟢 TOPIC CLICKED', topic, index);
         onClick?.();
       }}
       disabled={disabled}
       className={[
-        "w-full text-left rounded-lg border border-gray-200 bg-white p-4 transition relative",
+        'w-full text-left rounded-lg border border-gray-200 bg-white p-4 transition relative',
         disabled
-          ? "opacity-60 cursor-not-allowed"
-          : "hover:border-indigo-300 hover:shadow-sm",
-        isClickable ? "cursor-pointer" : "",
-      ].join(" ")}
+          ? 'opacity-60 cursor-not-allowed'
+          : 'hover:border-indigo-300 hover:shadow-sm',
+        isClickable ? 'cursor-pointer' : '',
+      ].join(' ')}
     >
       <div className="flex justify-between items-start">
         <div className="flex-1">
@@ -66,12 +70,12 @@ export default function TopicCard({ topic, index, onClick, disabled }: Props) {
             )}
 
             <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
-              {badge.icon} {disabled ? "Genereres…" : badge.label}
+              {badge.icon} {disabled ? 'Genereres…' : badge.label}
             </span>
           </div>
 
           <h4 className="mt-3 text-sm font-semibold text-gray-900">
-            {topic.title ?? "Uten tittel"}
+            {topic.title ?? 'Uten tittel'}
           </h4>
 
           {topic.description && (
@@ -80,7 +84,7 @@ export default function TopicCard({ topic, index, onClick, disabled }: Props) {
 
           {topic.relevance && (
             <p className="mt-3 text-xs text-gray-600">
-              <span className="font-semibold text-gray-700">Hvorfor:</span>{" "}
+              <span className="font-semibold text-gray-700">Hvorfor:</span>{' '}
               {topic.relevance}
             </p>
           )}

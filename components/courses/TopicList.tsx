@@ -1,4 +1,4 @@
-import TopicCard from "./TopicCard";
+import TopicCard from './TopicCard';
 
 interface Props {
   topics: any[];
@@ -31,8 +31,7 @@ export default function TopicList({
         const status = topicStatus[String(t.topicNumber)];
 
         const isClickable =
-          status?.hasContent === true &&
-          status?.clickable === true;
+          status?.hasContent === true && status?.clickable === true;
 
         return (
           <TopicCard

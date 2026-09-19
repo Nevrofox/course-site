@@ -2,7 +2,7 @@ import { getSession } from '@/lib/session';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { recordMetric } from '@/lib/metrics';
 import { ApiError } from '@/lib/errors';
-import env from '@/lib/env';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getUser, updateUser } from 'models/user';
 import { isEmailAllowed } from '@/lib/email/utils';
 import { updateAccountSchema, validateWithSchema } from '@/lib/zod';
@@ -36,12 +36,6 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getSession(req, res);
 
   if ('email' in data) {
-    const allowEmailChange = env.confirmEmail === false;
-
-    if (!allowEmailChange) {
-      throw new ApiError(400, 'Email change is not allowed.');
-    }
-
     if (!isEmailAllowed(data.email)) {
       throw new ApiError(400, 'Please use your work email.');
     }
@@ -51,12 +45,19 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
     if (user && user.id !== session?.user.id) {
       throw new ApiError(400, 'Email already in use.');
     }
-  }
 
-  await updateUser({
-    where: { id: session?.user.id },
-    data,
-  });
+    const supabase = createAdminClient();
+    const { error } = await supabase.auth.admin.updateUserById(
+      session!.user.id,
+      { email: data.email }
+    );
+
+    if (error) {
+      throw new ApiError(400, error.message);
+    }
+  } else {
+    await updateUser(session!.user.id, data);
+  }
 
   recordMetric('user.updated');
 

@@ -12,7 +12,7 @@ import { recordMetric } from '@/lib/metrics';
 import { ApiError } from '@/lib/errors';
 import env from '@/lib/env';
 import { updateTeamSchema, validateWithSchema } from '@/lib/zod';
-import { Prisma, Team } from '@prisma/client';
+import type { Team } from '@/types/db';
 
 export default async function handler(
   req: NextApiRequest,
@@ -66,36 +66,11 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const { name, slug, domain } = validateWithSchema(updateTeamSchema, req.body);
 
-  let updatedTeam: Team | null = null;
-
-  try {
-    updatedTeam = await updateTeam(user.team.slug, {
-      name,
-      slug,
-      domain,
-    });
-  } catch (error: any) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === 'P2002' &&
-      error.meta?.target
-    ) {
-      const target = error.meta.target as string[];
-
-      if (target.includes('slug')) {
-        throw new ApiError(409, 'This slug is already taken for a team.');
-      }
-
-      if (target.includes('domain')) {
-        throw new ApiError(
-          409,
-          'This domain is already associated with a team.'
-        );
-      }
-    }
-
-    throw error;
-  }
+  const updatedTeam: Team = await updateTeam(user.team.slug, {
+    name,
+    slug,
+    domain,
+  });
 
   sendAudit({
     action: 'team.update',

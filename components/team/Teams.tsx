@@ -1,6 +1,6 @@
 import { LetterAvatar } from '@/components/shared';
 import { defaultHeaders } from '@/lib/common';
-import { Team } from '@prisma/client';
+import { Team } from '@/types/db';
 import useTeams from 'hooks/useTeams';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
@@ -90,7 +90,7 @@ const Teams = () => {
                       { wrap: true, text: '' + team._count.members },
                       {
                         wrap: true,
-                        text: new Date(team.createdAt).toDateString(),
+                        text: new Date(team.created_at).toDateString(),
                       },
                       {
                         buttons: [

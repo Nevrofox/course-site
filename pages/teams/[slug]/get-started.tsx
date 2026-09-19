@@ -3,9 +3,12 @@
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 
-const CompanyWizard = dynamic(() => import('@/components/courses/CompanyWizard'), {
-  ssr: false,
-});
+const CompanyWizard = dynamic(
+  () => import('@/components/courses/CompanyWizard'),
+  {
+    ssr: false,
+  }
+);
 
 export default function GetStartedPage() {
   return (

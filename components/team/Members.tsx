@@ -1,8 +1,8 @@
 import { Error, LetterAvatar, Loading } from '@/components/shared';
-import { Team, TeamMember } from '@prisma/client';
+import { Team, TeamMember } from '@/types/db';
 import useCanAccess from 'hooks/useCanAccess';
 import useTeamMembers, { TeamMemberWithUser } from 'hooks/useTeamMembers';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/hooks/useSession';
 import { useTranslation } from 'next-i18next';
 import { Button } from 'react-daisyui';
 import toast from 'react-hot-toast';
@@ -46,7 +46,7 @@ const Members = ({ team }: { team: Team }) => {
       return;
     }
 
-    const sp = new URLSearchParams({ memberId: member.userId });
+    const sp = new URLSearchParams({ memberId: member.user_id });
 
     const response = await fetch(
       `/api/teams/${team.slug}/members?${sp.toString()}`,
@@ -69,13 +69,13 @@ const Members = ({ team }: { team: Team }) => {
 
   const canUpdateRole = (member: TeamMember) => {
     return (
-      session?.user.id != member.userId && canAccess('team_member', ['update'])
+      session?.user.id != member.user_id && canAccess('team_member', ['update'])
     );
   };
 
   const canRemoveMember = (member: TeamMember) => {
     return (
-      session?.user.id != member.userId && canAccess('team_member', ['delete'])
+      session?.user.id != member.user_id && canAccess('team_member', ['delete'])
     );
   };
 
